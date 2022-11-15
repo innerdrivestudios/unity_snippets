@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace InnerDriveStudios.PrefabReplacer
+namespace InnerDriveStudios.Util
 {
 
 	/**

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace InnerDriveStudios.Note
+namespace InnerDriveStudios.Util
 {
     /**
      * A nice and empty note component.

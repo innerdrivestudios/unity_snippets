@@ -1,7 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 
-namespace InnerDriveStudios.PrefabReplacer
+namespace InnerDriveStudios.Util
 {
 
 	/**

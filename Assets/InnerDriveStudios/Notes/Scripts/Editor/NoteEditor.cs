@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace InnerDriveStudios.Note
+namespace InnerDriveStudios.Util
 {
     /**
      * Defines the editor for the Note component which is 
