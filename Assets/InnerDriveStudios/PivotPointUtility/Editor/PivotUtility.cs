@@ -54,20 +54,13 @@ namespace InnerDriveStudios.Util
 
 		private static void processGameObject (GameObject pGameObject)
 		{
+			Bounds bounds;
+			if (!Common.GetBounds(pGameObject, out bounds)) return;
+
 			Transform selectedTransform = pGameObject.transform;
-			Vector3 originalPosition = selectedTransform.position;
 
+			//make sure we can undo everything
 			Undo.RecordObject(selectedTransform, "Pivot point fix");
-			MeshRenderer[] meshRenderers = selectedTransform.GetComponentsInChildren<MeshRenderer>();
-
-			if (meshRenderers.Length == 0) return;
-
-			Bounds bounds = meshRenderers[0].bounds;
-			for (int i = 1; i < meshRenderers.Length; i++)
-			{
-				bounds.Encapsulate(meshRenderers[i].bounds);
-			}
-
 			List<Transform> children = new List<Transform>();
 			foreach (Transform child in selectedTransform)
 			{
@@ -76,6 +69,7 @@ namespace InnerDriveStudios.Util
 			}
 			
 			//move pivot point down
+			Vector3 originalPosition = selectedTransform.position;
 			selectedTransform.position = bounds.center + Vector3.down * bounds.extents.y;
 
 			//move all objects in the transform up

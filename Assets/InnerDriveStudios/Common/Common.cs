@@ -73,5 +73,24 @@ namespace InnerDriveStudios.Util
 			return pTransform.GetComponent<MeshRenderer>() != null;
 		}
 
+		public static bool GetBounds (GameObject pRoot, out Bounds bounds)
+		{
+			MeshRenderer[] meshRenderers = pRoot.transform.GetComponentsInChildren<MeshRenderer>();
+
+			if (meshRenderers.Length == 0)
+			{
+				bounds = new Bounds();
+				return false;
+			}
+
+			bounds = meshRenderers[0].bounds;
+			for (int i = 1; i < meshRenderers.Length; i++)
+			{
+				bounds.Encapsulate(meshRenderers[i].bounds);
+			}
+
+			return true;
+		}
+
 	}
 }
