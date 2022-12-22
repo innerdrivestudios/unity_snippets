@@ -16,3 +16,8 @@ MonoBehaviour:
   - {fileID: 3722135085336254138, guid: fe2d6d54e5a158947827b62ec28f83c3, type: 3}
   - {fileID: 7374828818545778353, guid: 79bfbc2d76f0e0940ad15bfb3b1444e8, type: 3}
   hasToBeOfType: {fileID: 0}
+  keepCurrentLocalScale: 1
+  keepCurrentLocalRotation: 0
+  randomAngleToAdd: 360
+  angleSnap: 90
+  rotationAxis: {x: 0, y: 1, z: 0}

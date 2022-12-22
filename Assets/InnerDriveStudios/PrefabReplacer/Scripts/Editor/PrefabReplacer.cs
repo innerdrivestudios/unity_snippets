@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,10 +10,10 @@ namespace InnerDriveStudios.Util
 	 */
 	public class PrefabReplacer : EditorWindow
 	{
-		[MenuItem("Scene Utility/Replacer")]
+		[MenuItem(Settings.menuPath + "Prefab Replacer")]
 		private static void init()
 		{
-			PrefabReplacer window = GetWindow<PrefabReplacer>("Replacer");
+			PrefabReplacer window = GetWindow<PrefabReplacer>("Prefab Replacer");
 			window.minSize = new Vector2(350, 200);
 			window.Show();
 		}
@@ -68,7 +67,7 @@ namespace InnerDriveStudios.Util
 				{
 					List<GameObject> newSelection = new List<GameObject>();
 
-					Type typeFilter = null;
+					System.Type typeFilter = null;
 					if (settings.hasToBeOfType != null) typeFilter = settings.hasToBeOfType.GetClass();
 
 					for (int i = 0; i < _selectedObjects.Length; i++)
@@ -85,14 +84,39 @@ namespace InnerDriveStudios.Util
 						GameObject go = PrefabUtility.InstantiatePrefab(settings.replacers[UnityEngine.Random.Range(0, settings.replacers.Length)]) as GameObject;
 						go.transform.parent = selectedObject.transform.parent;
 						go.transform.position = selectedObject.transform.position;
-						go.transform.localScale = selectedObject.transform.localScale;
-						go.transform.rotation = selectedObject.transform.rotation;
+
+						//currently prefab has scale from replacement, but using original localScale is more logical
+						if (settings.keepCurrentLocalScale)
+						{
+							go.transform.localScale = selectedObject.transform.localScale;
+						}
+
+						//currently prefab has rotation from replacement, but using original rotation is more logical
+						if (settings.keepCurrentLocalRotation)
+						{
+							go.transform.localRotation = selectedObject.transform.localRotation;
+						}
+
+						if (settings.randomAngleToAdd != 0)
+						{
+							float angle = Random.Range(0, settings.randomAngleToAdd);
+							if (settings.angleSnap != 0) angle = Mathf.Round(angle / settings.angleSnap) * settings.angleSnap;
+							go.transform.localRotation *= Quaternion.AngleAxis(angle, settings.rotationAxis);
+						}
 
 						Undo.RegisterCreatedObjectUndo(go, "Replacer");
 						Undo.DestroyObjectImmediate(selectedObject);
 
 						newSelection.Add(go);
-					}
+
+/*		
+		public bool addAdditionalRotation = false;
+		public Vector3 rotationAxis = Vector3.up;
+		public Range randomAngleToAdd;
+		public bool integerAnglesOnly = true;
+		public int angleMultiplier = 1;
+*/
+	}
 
 					Selection.objects = newSelection.ToArray();
 				}
