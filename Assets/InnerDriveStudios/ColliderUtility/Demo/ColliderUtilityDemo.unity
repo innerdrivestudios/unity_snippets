@@ -348,7 +348,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &2141872322
+--- !u!1001 &2147420920
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -361,15 +361,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6686712353264367919, guid: c9a6fbcc8ba146b4d87f1fada7a2d6fa, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -0.05269116
       objectReference: {fileID: 0}
     - target: {fileID: 6686712353264367919, guid: c9a6fbcc8ba146b4d87f1fada7a2d6fa, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.342071
       objectReference: {fileID: 0}
     - target: {fileID: 6686712353264367919, guid: c9a6fbcc8ba146b4d87f1fada7a2d6fa, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 0.08747497
       objectReference: {fileID: 0}
     - target: {fileID: 6686712353264367919, guid: c9a6fbcc8ba146b4d87f1fada7a2d6fa, type: 3}
       propertyPath: m_LocalRotation.w
@@ -401,7 +401,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6686712353264367923, guid: c9a6fbcc8ba146b4d87f1fada7a2d6fa, type: 3}
       propertyPath: m_Name
-      value: Cube
+      value: CubeWithColliders
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c9a6fbcc8ba146b4d87f1fada7a2d6fa, type: 3}
