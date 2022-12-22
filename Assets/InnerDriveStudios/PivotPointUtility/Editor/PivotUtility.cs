@@ -8,7 +8,7 @@ namespace InnerDriveStudios.Util
 	{
 
 		[MenuItem(Settings.menuPath + "Bottom Center Pivot")]
-		public static void BottomCenterPivot()
+		private static void BottomCenterPivot()
 		{
 			if (Common.IsInPlayMode())
 			{
