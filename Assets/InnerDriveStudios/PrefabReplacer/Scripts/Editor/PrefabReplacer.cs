@@ -108,15 +108,7 @@ namespace InnerDriveStudios.Util
 						Undo.DestroyObjectImmediate(selectedObject);
 
 						newSelection.Add(go);
-
-/*		
-		public bool addAdditionalRotation = false;
-		public Vector3 rotationAxis = Vector3.up;
-		public Range randomAngleToAdd;
-		public bool integerAnglesOnly = true;
-		public int angleMultiplier = 1;
-*/
-	}
+					}
 
 					Selection.objects = newSelection.ToArray();
 				}
