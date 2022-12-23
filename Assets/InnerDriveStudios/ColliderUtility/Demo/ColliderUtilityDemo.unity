@@ -246,8 +246,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bd85f7ed66e11774eb29ca7cf048f2b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  noteText: Select the cube and select Utilities -> IDS -> Remove all colliders from
-    selection. Apply if needed.
+  noteText: 'Select the cube and select Utilities -> IDS -> Remove all colliders
+    from selection. Apply if needed.
+
+
+    In addition you can also easily re-add
+    bounding box, capsule or sphere colliders.'
   noteType: 0
 --- !u!4 &63375185
 Transform:
