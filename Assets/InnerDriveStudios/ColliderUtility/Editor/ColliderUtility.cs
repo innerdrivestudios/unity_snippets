@@ -57,7 +57,7 @@ namespace InnerDriveStudios.Util
 				extents.z = 0;
 			}
 
-			capsuleCollider.height = height;
+			capsuleCollider.height = height * 2;
 			capsuleCollider.direction = direction;
 			capsuleCollider.radius = extents.magnitude;
 		}
@@ -72,22 +72,17 @@ namespace InnerDriveStudios.Util
 			sphereCollider.center = Selection.activeTransform.InverseTransformPoint(bounds.center);
 			Vector3 extents = Selection.activeTransform.InverseTransformVector(bounds.extents);
 
-			//we want to get the inner dimension of the box and not the outer (which would be extents.magnitude)
-			//to get the inner dimension, we ignore the smallest dimension
-			if (extents.x < extents.y && extents.x > extents.z)
+			float height = extents.x;
+			if (extents.y > extents.x && extents.y > extents.z)
 			{
-				extents.x = 0;
+				height = extents.y;
 			}
-			else if (extents.y > extents.z && extents.y > extents.x)
+			else if (extents.z > extents.x && extents.z > extents.y)
 			{
-				extents.y = 0;
+				height = extents.z;
 			}
-			else
-			{
-				extents.z = 0;
-			}
-
-			sphereCollider.radius = extents.magnitude;
+	
+			sphereCollider.radius = height;
 		}
 
 		[MenuItem(Settings.menuPath + subMenu + "Add bounding capsule collider", true)]
