@@ -45,7 +45,7 @@ namespace InnerDriveStudios.Util
 		/// <returns></returns>
 		public static bool IsNonPrefabGameObjectInstance(GameObject pGameObject)
 		{
-			return pGameObject != null && pGameObject.scene != null && !PrefabUtility.IsPartOfAnyPrefab(pGameObject);
+			return pGameObject != null && !PrefabUtility.IsPartOfAnyPrefab(pGameObject);
 		}
 
 		/// <summary>
