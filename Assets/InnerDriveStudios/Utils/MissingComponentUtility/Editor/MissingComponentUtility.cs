@@ -12,13 +12,13 @@ namespace InnerDriveStudios.Util
         private const string subMenu = "Missing Components/";
 
 		[MenuItem(Settings.menuPath+subMenu+"Select all non prefab game objects with missing components")]
-		private static void SelectAllNonPrefabGameObjectsWithMissingComponents()
+		private static void selectAllNonPrefabGameObjectsWithMissingComponents()
 		{
             //determine our root game objects to investigate
             GameObject[] gameObjectsToTest =
                     Common.GetEditMode() == Common.EditMode.NORMAL ?
                     SceneManager.GetActiveScene().GetRootGameObjects():
-                    new GameObject[] { PrefabStageUtility.GetCurrentPrefabStage().prefabContentsRoot};
+                    new[] { PrefabStageUtility.GetCurrentPrefabStage().prefabContentsRoot};
 
             List<GameObject> goWithMissingComponents = new List<GameObject>();
             foreach (GameObject go in gameObjectsToTest)
@@ -26,7 +26,7 @@ namespace InnerDriveStudios.Util
                 recursivelyFindAllGameObjectsWithMissingComponents(go, goWithMissingComponents);
             }
             
-            Selection.objects = goWithMissingComponents.ToArray();
+            Selection.objects = goWithMissingComponents.ToArray<Object>(); //Convert to Object to avoid co-variant array conversion
 		}
 
 		private static void recursivelyFindAllGameObjectsWithMissingComponents(GameObject go, List<GameObject> goWithMissingComponents)
@@ -57,12 +57,12 @@ namespace InnerDriveStudios.Util
                 paths[i] = AssetDatabase.GUIDToAssetPath(guids[i]);
             }
 
-            List<UnityEngine.Object> objectsToSelect = new List<UnityEngine.Object>();
+            List<Object> objectsToSelect = new List<Object>();
 
             foreach (string path in paths)
 			{
                 GameObject go = (GameObject)AssetDatabase.LoadMainAssetAtPath(path);
-                if (go.GetComponentsInChildren<Component>().Where(x => x == null).Count() > 0)
+                if (go.GetComponentsInChildren<Component>().Any(x => x == null))
 				{
                     objectsToSelect.Add(go);
 				}
@@ -72,7 +72,7 @@ namespace InnerDriveStudios.Util
         }
 
         [MenuItem(Settings.menuPath + subMenu + "Remove missing components from all selected objects")]
-        private static void RemoveMissingComponentsFromAllSelectedObjects()
+        private static void removeMissingComponentsFromAllSelectedObjects()
         {
             /*
             GameObject[] gameObjectsToTest = Selection.gameObjects;

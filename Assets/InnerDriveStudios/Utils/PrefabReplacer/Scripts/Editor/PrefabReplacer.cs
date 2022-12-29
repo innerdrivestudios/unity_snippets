@@ -70,45 +70,43 @@ namespace InnerDriveStudios.Util
 					System.Type typeFilter = null;
 					if (settings.hasToBeOfType != null) typeFilter = settings.hasToBeOfType.GetClass();
 
-					for (int i = 0; i < _selectedObjects.Length; i++)
-					{
-						GameObject selectedObject = _selectedObjects[i];
+					foreach (GameObject selectedObject in _selectedObjects)
+                    {
+                        //if our selection was deleted during the loop skip it
+                        if (selectedObject == null) continue;
 
-						//if our selection was deleted during the loop skip it
-						if (selectedObject == null) continue;
+                        //if a typefilter has been specified and our gameObject doesn't have that type skip it
+                        if (typeFilter != null && selectedObject.GetComponent(typeFilter) == null) continue;
 
-						//if a typefilter has been specified and our gameObject doesn't have that type skip it
-						if (typeFilter != null && selectedObject.GetComponent(typeFilter) == null) continue;
+                        //Undo.DestroyObjectImmediate
+                        GameObject go = PrefabUtility.InstantiatePrefab(settings.replacers[UnityEngine.Random.Range(0, settings.replacers.Length)]) as GameObject;
+                        go.transform.parent = selectedObject.transform.parent;
+                        go.transform.position = selectedObject.transform.position;
 
-						//Undo.DestroyObjectImmediate
-						GameObject go = PrefabUtility.InstantiatePrefab(settings.replacers[UnityEngine.Random.Range(0, settings.replacers.Length)]) as GameObject;
-						go.transform.parent = selectedObject.transform.parent;
-						go.transform.position = selectedObject.transform.position;
+                        //currently prefab has scale from replacement, but using original localScale is more logical
+                        if (settings.keepCurrentLocalScale)
+                        {
+                            go.transform.localScale = selectedObject.transform.localScale;
+                        }
 
-						//currently prefab has scale from replacement, but using original localScale is more logical
-						if (settings.keepCurrentLocalScale)
-						{
-							go.transform.localScale = selectedObject.transform.localScale;
-						}
+                        //currently prefab has rotation from replacement, but using original rotation is more logical
+                        if (settings.keepCurrentLocalRotation)
+                        {
+                            go.transform.localRotation = selectedObject.transform.localRotation;
+                        }
 
-						//currently prefab has rotation from replacement, but using original rotation is more logical
-						if (settings.keepCurrentLocalRotation)
-						{
-							go.transform.localRotation = selectedObject.transform.localRotation;
-						}
+                        if (settings.randomAngleToAdd != 0)
+                        {
+                            float angle = Random.Range(0, settings.randomAngleToAdd);
+                            if (settings.angleSnap != 0) angle = Mathf.Round(angle / settings.angleSnap) * settings.angleSnap;
+                            go.transform.localRotation *= Quaternion.AngleAxis(angle, settings.rotationAxis);
+                        }
 
-						if (settings.randomAngleToAdd != 0)
-						{
-							float angle = Random.Range(0, settings.randomAngleToAdd);
-							if (settings.angleSnap != 0) angle = Mathf.Round(angle / settings.angleSnap) * settings.angleSnap;
-							go.transform.localRotation *= Quaternion.AngleAxis(angle, settings.rotationAxis);
-						}
+                        Undo.RegisterCreatedObjectUndo(go, "Replacer");
+                        Undo.DestroyObjectImmediate(selectedObject);
 
-						Undo.RegisterCreatedObjectUndo(go, "Replacer");
-						Undo.DestroyObjectImmediate(selectedObject);
-
-						newSelection.Add(go);
-					}
+                        newSelection.Add(go);
+                    }
 
 					Selection.objects = newSelection.ToArray();
 				}

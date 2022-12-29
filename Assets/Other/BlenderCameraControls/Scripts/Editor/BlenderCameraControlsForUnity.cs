@@ -16,7 +16,7 @@ public class BlenderCameraControlsForUnity
     {
         SceneView.duringSceneGui += view =>
         {
-            UnityEditor.SceneView sceneView;
+            SceneView sceneView;
             Vector3 eulerAngles;
             Event current;
             Quaternion rotHelper;
@@ -26,7 +26,7 @@ public class BlenderCameraControlsForUnity
             if (!current.isKey || current.type != EventType.KeyDown)
                 return;
 
-            sceneView = UnityEditor.SceneView.lastActiveSceneView;
+            sceneView = SceneView.lastActiveSceneView;
 
             eulerAngles = sceneView.camera.transform.rotation.eulerAngles;
             rotHelper = sceneView.camera.transform.rotation;
