@@ -2,8 +2,8 @@ namespace InnerDriveStudios.Util
 {
 	public static class Settings 
 	{
-		public const string menuPath = "Utilities/InnerDriveStudios/";
-		public const string testMenuPath = "Tests/";
+		public const string MENU_PATH = "Utilities/InnerDriveStudios/";
+		public const string TEST_MENU_PATH = "Tests/";
 	}
 }
 

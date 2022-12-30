@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace InnerDriveStudios.Util
 {
-
 	/**
 	 * Settings for the replacer window.
 	 */

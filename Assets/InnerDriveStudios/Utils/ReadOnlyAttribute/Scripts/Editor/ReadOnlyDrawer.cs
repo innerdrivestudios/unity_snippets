@@ -18,7 +18,7 @@ namespace InnerDriveStudios.Util
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             // Saving previous GUI enabled value
-            var previousGUIState = GUI.enabled;
+            bool previousGuiState = GUI.enabled;
 
             // Disabling edit for property
             GUI.enabled = false;
@@ -27,7 +27,7 @@ namespace InnerDriveStudios.Util
             EditorGUI.PropertyField(position, property, label);
 
             // Setting old GUI enabled value
-            GUI.enabled = previousGUIState;
+            GUI.enabled = previousGuiState;
         }
     }
 }

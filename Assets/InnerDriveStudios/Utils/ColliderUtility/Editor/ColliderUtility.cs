@@ -5,10 +5,10 @@ namespace InnerDriveStudios.Util
 {
 	public static class ColliderUtility
 	{
-		private const string subMenu = "Colliders/";
+		private const string SUB_MENU = "Colliders/";
 
-		[MenuItem(Settings.menuPath + subMenu + "Remove all colliders from selected objects")]
-		private static void removeAllColliders()
+		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Remove all colliders from selected objects")]
+		private static void RemoveAllColliders()
 		{
 			foreach (GameObject gameObject in Selection.gameObjects)
 			{
@@ -19,8 +19,8 @@ namespace InnerDriveStudios.Util
 			}
 		}
 
-		[MenuItem(Settings.menuPath + subMenu + "Add bounding box collider")]
-		private static void addBoundingBoxCollider()
+		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding box collider")]
+		private static void AddBoundingBoxCollider()
 		{
             if (!Common.GetBounds(Selection.activeTransform, out Bounds bounds)) return;
 
@@ -30,8 +30,8 @@ namespace InnerDriveStudios.Util
 			boxCollider.size = Selection.activeTransform.InverseTransformVector(bounds.extents * 2);
 		}
 
-		[MenuItem(Settings.menuPath + subMenu + "Add bounding capsule collider")]
-		private static void addBoundingCapsuleCollider()
+		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding capsule collider")]
+		private static void AddBoundingCapsuleCollider()
 		{
             if (!Common.GetBounds(Selection.activeTransform, out Bounds bounds)) return;
 
@@ -59,8 +59,8 @@ namespace InnerDriveStudios.Util
 			capsuleCollider.radius = extents.magnitude;
 		}
 
-		[MenuItem(Settings.menuPath + subMenu + "Add bounding sphere collider")]
-		private static void addBoundingSphereCollider()
+		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding sphere collider")]
+		private static void AddBoundingSphereCollider()
 		{
             if (!Common.GetBounds(Selection.activeTransform, out Bounds bounds)) return;
 
@@ -81,10 +81,10 @@ namespace InnerDriveStudios.Util
 			sphereCollider.radius = height;
 		}
 
-		[MenuItem(Settings.menuPath + subMenu + "Add bounding capsule collider", true)]
-		[MenuItem(Settings.menuPath + subMenu + "Add bounding box collider", true)]
-		[MenuItem(Settings.menuPath + subMenu + "Add bounding sphere collider", true)]
-		private static bool isGameObjectSelected()
+		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding capsule collider", true)]
+		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding box collider", true)]
+		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding sphere collider", true)]
+		private static bool IsGameObjectSelected()
 		{
 			return Selection.activeGameObject != null;
 		}

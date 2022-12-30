@@ -9,27 +9,28 @@ namespace InnerDriveStudios.Util
 {
 	public static class MissingComponentUtility
 	{
-        private const string subMenu = "Missing Components/";
+        private const string SUB_MENU = "Missing Components/";
 
-		[MenuItem(Settings.menuPath+subMenu+"Select all non prefab game objects with missing components")]
-		private static void selectAllNonPrefabGameObjectsWithMissingComponents()
+		[MenuItem(Settings.MENU_PATH+SUB_MENU+"Select all non prefab game objects with missing components")]
+		private static void SelectAllNonPrefabGameObjectsWithMissingComponents()
 		{
             //determine our root game objects to investigate
             GameObject[] gameObjectsToTest =
-                    Common.GetEditMode() == Common.EditMode.NORMAL ?
+                    Common.GetEditMode() == Common.EditMode.Normal ?
                     SceneManager.GetActiveScene().GetRootGameObjects():
                     new[] { PrefabStageUtility.GetCurrentPrefabStage().prefabContentsRoot};
 
-            List<GameObject> goWithMissingComponents = new List<GameObject>();
+            List<GameObject> goWithMissingComponents = new();
+
             foreach (GameObject go in gameObjectsToTest)
 			{
-                recursivelyFindAllGameObjectsWithMissingComponents(go, goWithMissingComponents);
+                RecursivelyFindAllGameObjectsWithMissingComponents(go, goWithMissingComponents);
             }
             
             Selection.objects = goWithMissingComponents.ToArray<Object>(); //Convert to Object to avoid co-variant array conversion
 		}
 
-		private static void recursivelyFindAllGameObjectsWithMissingComponents(GameObject go, List<GameObject> goWithMissingComponents)
+		private static void RecursivelyFindAllGameObjectsWithMissingComponents(GameObject go, List<GameObject> goWithMissingComponents)
 		{
             //should we add the current object to the list?
             if (Common.IsNonPrefabGameObjectInstance(go) && GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(go) > 0)
@@ -40,11 +41,11 @@ namespace InnerDriveStudios.Util
             //repeat for all children
             foreach (Transform t in go.transform)
 			{
-                recursivelyFindAllGameObjectsWithMissingComponents(t.gameObject, goWithMissingComponents);
+                RecursivelyFindAllGameObjectsWithMissingComponents(t.gameObject, goWithMissingComponents);
 			}
 		}
 
-        [MenuItem(Settings.menuPath+subMenu+"Select all prefab assets with missing components")]
+        [MenuItem(Settings.MENU_PATH+SUB_MENU+"Select all prefab assets with missing components")]
         public static void SelectAllPrefabAssetsWithMissingComponents()
         {
             // Get all prefab assets in the project
@@ -57,7 +58,7 @@ namespace InnerDriveStudios.Util
                 paths[i] = AssetDatabase.GUIDToAssetPath(guids[i]);
             }
 
-            List<Object> objectsToSelect = new List<Object>();
+            List<Object> objectsToSelect = new();
 
             foreach (string path in paths)
 			{
@@ -71,8 +72,8 @@ namespace InnerDriveStudios.Util
             Selection.objects = objectsToSelect.ToArray();
         }
 
-        [MenuItem(Settings.menuPath + subMenu + "Remove missing components from all selected objects")]
-        private static void removeMissingComponentsFromAllSelectedObjects()
+        [MenuItem(Settings.MENU_PATH + SUB_MENU + "Remove missing components from all selected objects")]
+        private static void RemoveMissingComponentsFromAllSelectedObjects()
         {
             /*
             GameObject[] gameObjectsToTest = Selection.gameObjects;

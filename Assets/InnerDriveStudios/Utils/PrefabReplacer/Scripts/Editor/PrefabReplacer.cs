@@ -10,8 +10,8 @@ namespace InnerDriveStudios.Util
 	 */
 	public class PrefabReplacer : EditorWindow
 	{
-		[MenuItem(Settings.menuPath + "Prefab Replacer")]
-		private static void init()
+		[MenuItem(Settings.MENU_PATH + "Prefab Replacer")]
+		private static void Init()
 		{
 			PrefabReplacer window = GetWindow<PrefabReplacer>("Prefab Replacer");
 			window.minSize = new Vector2(350, 200);
@@ -21,11 +21,11 @@ namespace InnerDriveStudios.Util
 		private PrefabReplacerSettings settings;
 		private Editor settingsEditor;
 
-		private GameObject[] _selectedObjects = null;
+		private GameObject[] selectedObjects = null;
 
 		//we update this flag after each selection change
-		private enum SelectionStatus { NONE, INVALID, OK };
-		private SelectionStatus status = SelectionStatus.NONE;
+		private enum SelectionStatus { None, Invalid, Ok };
+		private SelectionStatus status = SelectionStatus.None;
 
 		private void OnEnable()
 		{
@@ -49,17 +49,17 @@ namespace InnerDriveStudios.Util
 		//repaint our window based on the new status, and update the layout of the selected objects based on our settings
 		private void OnSelectionChange()
 		{
-			updateSelectionStatus();
+			UpdateSelectionStatus();
 			Repaint();
 		}
 
-		void OnGUI()
+		private void OnGUI()
 		{
 			//show the editor
 			Editor.CreateCachedEditor(settings, null, ref settingsEditor);
 			settingsEditor.OnInspectorGUI();
 
-			GUI.enabled = status == SelectionStatus.OK;
+			GUI.enabled = status == SelectionStatus.Ok;
 
 			if (GUILayout.Button("Replace selected"))
 			{
@@ -70,7 +70,7 @@ namespace InnerDriveStudios.Util
 					System.Type typeFilter = null;
 					if (settings.hasToBeOfType != null) typeFilter = settings.hasToBeOfType.GetClass();
 
-					foreach (GameObject selectedObject in _selectedObjects)
+					foreach (GameObject selectedObject in selectedObjects)
                     {
                         //if our selection was deleted during the loop skip it
                         if (selectedObject == null) continue;
@@ -123,28 +123,28 @@ namespace InnerDriveStudios.Util
 			EditorGUILayout.EndHorizontal();
 		}
 
-		private void updateSelectionStatus()
+		private void UpdateSelectionStatus()
 		{
-			_selectedObjects = Selection.gameObjects;
+			selectedObjects = Selection.gameObjects;
 
-			int count = _selectedObjects.Length;                       //cache the nr of objects
+			int count = selectedObjects.Length;                       //cache the nr of objects
 
 			if (count == 0)
 			{
-				status = SelectionStatus.NONE;
+				status = SelectionStatus.None;
 				return;
 			}
 
 			for (int i = 0; i < count; i++)
 			{
-				if (!_selectedObjects[i].scene.IsValid())
+				if (!selectedObjects[i].scene.IsValid())
 				{
-					status = SelectionStatus.INVALID;
+					status = SelectionStatus.Invalid;
 					return;
 				}
 			}
 
-			status = SelectionStatus.OK;
+			status = SelectionStatus.Ok;
 		}
 
 	}

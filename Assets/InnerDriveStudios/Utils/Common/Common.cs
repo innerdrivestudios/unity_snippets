@@ -7,7 +7,7 @@ namespace InnerDriveStudios.Util
 	public static class Common
 	{
 		//note that you can be in both play mode and one of these edit modes, since you can edit in play mode
-		public enum EditMode { NORMAL, PREFAB };
+		public enum EditMode { Normal, Prefab };
 
 		/// <summary>
 		/// Returns whether the application is in play mode
@@ -33,7 +33,7 @@ namespace InnerDriveStudios.Util
 		/// <returns></returns>
 		public static EditMode GetEditMode()
 		{
-			return PrefabStageUtility.GetCurrentPrefabStage() == null ? EditMode.NORMAL : EditMode.PREFAB;
+			return PrefabStageUtility.GetCurrentPrefabStage() == null ? EditMode.Normal : EditMode.Prefab;
 		}
 
 		/// <summary>
@@ -63,7 +63,7 @@ namespace InnerDriveStudios.Util
 			return pTransform.parent == null;
 		}
 
-		public static bool IsEmpty (Transform pTransform)
+		public static bool IsEmpty(Transform pTransform)
 		{
 			return pTransform.GetComponents<Component>().Length == 1;
 		}
@@ -74,7 +74,7 @@ namespace InnerDriveStudios.Util
 		}
 
 		/// <summary> Returns false when the gameobject or its children do not contain any meshrenderer components</summary>
-		public static bool GetBounds (Transform pRoot, out Bounds bounds)
+		public static bool GetBounds(Transform pRoot, out Bounds bounds)
 		{
 			MeshRenderer[] meshRenderers = pRoot.GetComponentsInChildren<MeshRenderer>();
 
