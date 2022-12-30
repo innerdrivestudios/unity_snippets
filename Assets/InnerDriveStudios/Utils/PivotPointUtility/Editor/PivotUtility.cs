@@ -8,7 +8,7 @@ namespace InnerDriveStudios.Util
 	{
 
 		[MenuItem(Settings.menuPath + "Bottom Center Pivot")]
-		private static void BottomCenterPivot()
+		private static void bottomCenterPivot()
 		{
 			if (Common.IsInPlayMode())
 			{
@@ -49,15 +49,12 @@ namespace InnerDriveStudios.Util
 			}
 			*/
 
-			processGameObject(Selection.activeGameObject);
+			processGameObject(Selection.activeTransform);
 		}
 
-		private static void processGameObject (GameObject pGameObject)
+		private static void processGameObject (Transform selectedTransform)
 		{
-			Bounds bounds;
-			if (!Common.GetBounds(pGameObject, out bounds)) return;
-
-			Transform selectedTransform = pGameObject.transform;
+            if (!Common.GetBounds(selectedTransform, out Bounds bounds)) return;
 
 			//make sure we can undo everything
 			Undo.RecordObject(selectedTransform, "Pivot point fix");

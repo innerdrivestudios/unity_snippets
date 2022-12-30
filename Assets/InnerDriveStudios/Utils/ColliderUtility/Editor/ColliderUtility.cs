@@ -8,23 +8,21 @@ namespace InnerDriveStudios.Util
 		private const string subMenu = "Colliders/";
 
 		[MenuItem(Settings.menuPath + subMenu + "Remove all colliders from selected objects")]
-		private static void RemoveAllColliders()
+		private static void removeAllColliders()
 		{
 			foreach (GameObject gameObject in Selection.gameObjects)
 			{
-				Collider[] colliders = gameObject.GetComponentsInChildren<Collider>();
-				for (int i = 0; i < colliders.Length; i++)
-				{
-					Undo.DestroyObjectImmediate(colliders[i]);
-				}
+                foreach (Collider collider in gameObject.GetComponentsInChildren<Collider>())
+                {
+                    Undo.DestroyObjectImmediate(collider);
+                }
 			}
 		}
 
 		[MenuItem(Settings.menuPath + subMenu + "Add bounding box collider")]
-		private static void AddBoundingBoxCollider()
+		private static void addBoundingBoxCollider()
 		{
-			Bounds bounds;
-			if (!Common.GetBounds(Selection.activeGameObject, out bounds)) return;
+            if (!Common.GetBounds(Selection.activeTransform, out Bounds bounds)) return;
 
 			BoxCollider boxCollider = Undo.AddComponent<BoxCollider>(Selection.activeGameObject);
 
@@ -33,10 +31,9 @@ namespace InnerDriveStudios.Util
 		}
 
 		[MenuItem(Settings.menuPath + subMenu + "Add bounding capsule collider")]
-		private static void AddBoundingCapsuleCollider()
+		private static void addBoundingCapsuleCollider()
 		{
-			Bounds bounds;
-			if (!Common.GetBounds(Selection.activeGameObject, out bounds)) return;
+            if (!Common.GetBounds(Selection.activeTransform, out Bounds bounds)) return;
 
 			CapsuleCollider capsuleCollider = Undo.AddComponent<CapsuleCollider>(Selection.activeGameObject);
 
@@ -63,10 +60,9 @@ namespace InnerDriveStudios.Util
 		}
 
 		[MenuItem(Settings.menuPath + subMenu + "Add bounding sphere collider")]
-		private static void AddBoundingSphereCollider()
+		private static void addBoundingSphereCollider()
 		{
-			Bounds bounds;
-			if (!Common.GetBounds(Selection.activeGameObject, out bounds)) return;
+            if (!Common.GetBounds(Selection.activeTransform, out Bounds bounds)) return;
 
 			SphereCollider sphereCollider = Undo.AddComponent<SphereCollider>(Selection.activeGameObject);
 			sphereCollider.center = Selection.activeTransform.InverseTransformPoint(bounds.center);
@@ -88,7 +84,7 @@ namespace InnerDriveStudios.Util
 		[MenuItem(Settings.menuPath + subMenu + "Add bounding capsule collider", true)]
 		[MenuItem(Settings.menuPath + subMenu + "Add bounding box collider", true)]
 		[MenuItem(Settings.menuPath + subMenu + "Add bounding sphere collider", true)]
-		private static bool IsGameObjectSelected()
+		private static bool isGameObjectSelected()
 		{
 			return Selection.activeGameObject != null;
 		}

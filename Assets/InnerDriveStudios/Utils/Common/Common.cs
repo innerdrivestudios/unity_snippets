@@ -45,7 +45,7 @@ namespace InnerDriveStudios.Util
 		/// <returns></returns>
 		public static bool IsNonPrefabGameObjectInstance(GameObject pGameObject)
 		{
-			return pGameObject != null && pGameObject.scene != null && !PrefabUtility.IsPartOfAnyPrefab(pGameObject);
+			return pGameObject != null && pGameObject.scene.IsValid() && !PrefabUtility.IsPartOfAnyPrefab(pGameObject);
 		}
 
 		/// <summary>
@@ -73,9 +73,10 @@ namespace InnerDriveStudios.Util
 			return pTransform.GetComponent<MeshRenderer>() != null;
 		}
 
-		public static bool GetBounds (GameObject pRoot, out Bounds bounds)
+		/// <summary> Returns false when the gameobject or its children do not contain any meshrenderer components</summary>
+		public static bool GetBounds (Transform pRoot, out Bounds bounds)
 		{
-			MeshRenderer[] meshRenderers = pRoot.transform.GetComponentsInChildren<MeshRenderer>();
+			MeshRenderer[] meshRenderers = pRoot.GetComponentsInChildren<MeshRenderer>();
 
 			if (meshRenderers.Length == 0)
 			{
