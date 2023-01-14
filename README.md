@@ -1,5 +1,5 @@
 # Unity Snippets
-Repository with some handy unity snippets and tools
+Repository with some handy unity snippets and tools, use at your own risk :).
 
 ## Tools:
 1. ColliderUtility - remove all colliders from objects and re-add bounding box, sphere or capsule colliders
