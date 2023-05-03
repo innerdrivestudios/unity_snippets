@@ -4,16 +4,16 @@ using UnityEditor;
 namespace InnerDriveStudios.Util
 {
 	/**
-     * Defines the editor for the Note component which is 
-     * a simple sticky note like component through which you
-     * can document your scene.
+     * Defines the editor for the Note component which is a simple sticky-note-like component,
+     * through which you can document your scene.
+     * 
+     * @author J.C. Wichman - InnerDriveStudios.com
      */
 	[CustomEditor(typeof(Note))]
 	public class NoteEditor : Editor
 	{
-
-		private static bool backgroundTexturesInitialized = false;
 		private static string[] descriptions = { "Documentation", "Todo", "Nice to have", "Minor bug", "Critical bug" };
+
 		private static Color[] colors = {
 			new Color(1, 1, 0.4f),
 			new Color(1, 0.75f, 0.3f),
@@ -29,11 +29,14 @@ namespace InnerDriveStudios.Util
 			GUILayout.ExpandHeight(false)
 		};
 
+		//textures are unloaded on scene changes, so instead of a boolean we use an actual small texture
+		//to detect if textures need to be reinitialized or not
+		private static Texture textureInitialized = null;
+
 		private static void GenerateBackgroundTexturesForDescriptions()
 		{
-			if (backgroundTexturesInitialized) return;
+			if (textureInitialized) return;
 
-			noteStyles = new GUIStyle[descriptions.Length];
 			noteStyles = new GUIStyle[descriptions.Length];
 
 			for (int i = 0; i < descriptions.Length; i++)
@@ -51,6 +54,8 @@ namespace InnerDriveStudios.Util
 
 				noteStyles[i] = style;
 			}
+
+			textureInitialized = new Texture2D(1, 1);
 		}
 
 		private SerializedProperty noteType;

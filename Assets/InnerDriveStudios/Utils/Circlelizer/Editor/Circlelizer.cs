@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace InnerDriveStudios.Util
 {
+	/**
+	 * Utility to position a number of selected objects in a circle with a given radius and facing.
+	 */
 	public class Circlelizer : EditorWindow
 	{
 		[MenuItem(Settings.MENU_PATH + "Circlelizer")]
@@ -15,7 +18,7 @@ namespace InnerDriveStudios.Util
 		}
 
 		//define all the values the user can set and use [SerializeField] to indicate which fields
-		//we'd like to serialize in OnEnabl/OnDisable using JSON
+		//we'd like to serialize in OnEnable/OnDisable using JSON
 
 		[SerializeField] private Vector3 centerPoint = Vector3.zero;
 		[SerializeField] private float startRotation = 0;

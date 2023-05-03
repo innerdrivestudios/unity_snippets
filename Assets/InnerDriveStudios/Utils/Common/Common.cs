@@ -6,7 +6,7 @@ namespace InnerDriveStudios.Util
 {
 	public static class Common
 	{
-		//note that you can be in both play mode and one of these edit modes, since you can edit in play mode
+		///note that you can be in both play mode and one of these edit modes, since you can edit in play mode
 		public enum EditMode { Normal, Prefab };
 
 		/// <summary>

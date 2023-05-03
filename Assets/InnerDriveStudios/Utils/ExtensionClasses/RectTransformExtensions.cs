@@ -2,6 +2,11 @@
 
 namespace InnerDriveStudios.Util
 {
+    /**
+	 * Simple extension class to make it easier to handle RectTransforms.
+	 *
+	 * @author unknown
+	 */
     public static class RectTransformExtensions
     {
         public static void SetLeft(this RectTransform rt, float left)
@@ -26,10 +31,8 @@ namespace InnerDriveStudios.Util
 
         public static void SetAll(this RectTransform rt, float value)
         {
-            rt.offsetMin = new Vector2(value, rt.offsetMin.y);
-            rt.offsetMax = new Vector2(-value, rt.offsetMax.y);
-            rt.offsetMax = new Vector2(rt.offsetMax.x, -value);
-            rt.offsetMin = new Vector2(rt.offsetMin.x, value);
+            rt.offsetMin = new Vector2(value, value);
+            rt.offsetMax = new Vector2(-value, -value);
         }
     }
 }

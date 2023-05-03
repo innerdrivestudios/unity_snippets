@@ -3,6 +3,11 @@ using UnityEngine;
 
 namespace InnerDriveStudios.Util
 {
+	/**
+	 * Simple extension class to get a random list or array element.
+	 *
+	 * @author J.C. Wichman - InnerDriveStudios.com
+	 */
 	public static class CollectionExtensions
 	{
 		public static T GetRandomElement<T>(this List<T> pList)
