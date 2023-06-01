@@ -38,7 +38,7 @@ namespace InnerDriveStudios.Util
 			if (scriptProperty == null) return;
 
 			//if so, does it have a tooltip attribute?
-			TooltipAttribute tooltipAttribute = GetClassLevelTooltip(target, true);
+			ClassTooltipAttribute tooltipAttribute = GetClassLevelTooltip(target, true);
 			if (tooltipAttribute == null) return;
 
 			//if so, get its value and run it through our Regex
@@ -64,11 +64,11 @@ namespace InnerDriveStudios.Util
 			serializedObject.ApplyModifiedProperties();
 		}
 
-		private TooltipAttribute GetClassLevelTooltip(Object pObject, bool pForSubclassToo)
+		private ClassTooltipAttribute GetClassLevelTooltip(Object pObject, bool pForSubclassToo)
 		{
 			//use a bunch of reflection statements in a row to get the contents of the TooltipAttribute, if any
-			object[] attributes = pObject.GetType().GetTypeInfo().GetCustomAttributes(typeof(TooltipAttribute), pForSubclassToo);
-			return attributes.Length > 0 ? attributes[0] as TooltipAttribute : null;
+			object[] attributes = pObject.GetType().GetTypeInfo().GetCustomAttributes(typeof(ClassTooltipAttribute), pForSubclassToo);
+			return attributes.Length > 0 ? attributes[0] as ClassTooltipAttribute : null;
 		}
 	}
 }

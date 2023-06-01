@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEditor.Experimental.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -24,7 +25,7 @@ namespace InnerDriveStudios.Util
 		/// <returns></returns>
 		public static int GetSelectedObjectsCount()
 		{
-			return Selection.count;
+			return Selection.objects.Length;
 		}
 
 		/// <summary>

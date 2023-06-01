@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Experimental.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -20,7 +21,7 @@ namespace InnerDriveStudios.Util
                     SceneManager.GetActiveScene().GetRootGameObjects():
                     new[] { PrefabStageUtility.GetCurrentPrefabStage().prefabContentsRoot};
 
-            List<GameObject> goWithMissingComponents = new();
+            List<GameObject> goWithMissingComponents = new List<GameObject>();
 
             foreach (GameObject go in gameObjectsToTest)
 			{
@@ -58,7 +59,7 @@ namespace InnerDriveStudios.Util
                 paths[i] = AssetDatabase.GUIDToAssetPath(guids[i]);
             }
 
-            List<Object> objectsToSelect = new();
+            List<Object> objectsToSelect = new List<Object>();
 
             foreach (string path in paths)
 			{

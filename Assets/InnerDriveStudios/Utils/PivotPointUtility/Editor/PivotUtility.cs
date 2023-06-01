@@ -58,7 +58,7 @@ namespace InnerDriveStudios.Util
 
 			//make sure we can undo everything
 			Undo.RecordObject(selectedTransform, "Pivot point fix");
-			List<Transform> children = new();
+			List<Transform> children = new List<Transform>();
 			foreach (Transform child in selectedTransform)
 			{
 				Undo.RecordObject(child, "Pivot point fix");
