@@ -27,7 +27,11 @@ namespace InnerDriveStudios.Util
 			BoxCollider boxCollider = Undo.AddComponent<BoxCollider>(Selection.activeGameObject);
 
 			boxCollider.center = Selection.activeTransform.InverseTransformPoint(bounds.center);
-			boxCollider.size = Selection.activeTransform.InverseTransformVector(bounds.extents * 2);
+			Vector3 size = Selection.activeTransform.InverseTransformVector(bounds.extents * 2);
+			size.x = Mathf.Abs(size.x);
+			size.y = Mathf.Abs(size.y);
+			size.z = Mathf.Abs(size.z);
+			boxCollider.size = size;
 		}
 
 		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding capsule collider")]
