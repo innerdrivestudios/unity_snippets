@@ -1,11 +1,15 @@
 using UnityEditor;
-using UnityEditor.Experimental.SceneManagement;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace InnerDriveStudios.Util
 {
-	public static class Common
+    /**
+     * Bunch of utility methods to make the other classes simpler.
+     * 
+     * @author J.C.Wichman - InnerDriveStudios.com
+     */
+    public static class Common
 	{
 		///note that you can be in both play mode and one of these edit modes, since you can edit in play mode
 		public enum EditMode { Normal, Prefab };
@@ -75,7 +79,7 @@ namespace InnerDriveStudios.Util
 		}
 
 		/// <summary> Returns false when the gameobject or its children do not contain any meshrenderer components</summary>
-		public static bool GetBounds(Transform pRoot, out Bounds bounds)
+		public static bool GetWorldBounds(Transform pRoot, out Bounds bounds)
 		{
 			MeshRenderer[] meshRenderers = pRoot.GetComponentsInChildren<MeshRenderer>();
 
