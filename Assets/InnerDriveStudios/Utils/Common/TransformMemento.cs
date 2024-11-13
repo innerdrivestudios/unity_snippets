@@ -27,7 +27,8 @@ namespace InnerDriveStudios.Util
 
         public void Reset()
         {
-            transform.parent = null;
+            //this check is to avoid unity going crazy when performing this on a prefab in the projectwindow
+            if (transform.parent != null) transform.parent = null;
             transform.localPosition = Vector3.zero;
             transform.localRotation = Quaternion.identity;
             transform.localScale = Vector3.one;
@@ -35,7 +36,8 @@ namespace InnerDriveStudios.Util
 
         public void Restore()
         {
-            transform.parent = parent;
+            //this check is to avoid unity going crazy when performing this on a prefab
+            if (parent != null) transform.parent = parent;
             transform.localPosition = localPosition;
             transform.localRotation = localRotation;
             transform.localScale = localScale;

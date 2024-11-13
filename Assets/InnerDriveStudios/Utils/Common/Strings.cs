@@ -25,7 +25,11 @@ namespace InnerDriveStudios.Util
         public const string NO_MESHRENDERER =
             "Please select a game object without a meshrenderer as the pivot";
 
+        public const string OPERATION_NOT_SUPPORTED =
+            "Operation not supported";
 
+        public const string CHILD_OPERATION_ONLY_SUPPORTED_IN_PREFAB_EDIT_MODE =
+            "This (child) operation is only supported in Prefab Edit Mode";
     }
 }
 

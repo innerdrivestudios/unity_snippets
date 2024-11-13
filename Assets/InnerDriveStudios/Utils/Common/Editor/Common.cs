@@ -53,6 +53,11 @@ namespace InnerDriveStudios.Util
 			return pGameObject != null && pGameObject.scene.IsValid() && !PrefabUtility.IsPartOfAnyPrefab(pGameObject);
 		}
 
+		public static bool IsPrefab (GameObject pGameObject)
+		{
+			return pGameObject != null && !pGameObject.scene.IsValid();
+		}
+
 		/// <summary>
 		/// Is the transform a regular transform and not a RectTransform?
 		/// </summary>
@@ -98,5 +103,40 @@ namespace InnerDriveStudios.Util
 			return true;
 		}
 
-	}
+        public static bool GetLocalBounds(Transform pRoot, out Bounds bounds)
+        {
+            MeshRenderer[] meshRenderers = pRoot.GetComponentsInChildren<MeshRenderer>();
+
+            if (meshRenderers.Length == 0)
+            {
+                bounds = new Bounds();
+                return false;
+            }
+
+            bounds = meshRenderers[0].localBounds;
+            for (int i = 1; i < meshRenderers.Length; i++)
+            {
+                bounds.Encapsulate(meshRenderers[i].localBounds);
+            }
+
+            return true;
+        }
+
+        public static bool IsPartOfPrefabInstanceButNotRoot(GameObject obj)
+        {
+            // Check if the object is part of a prefab instance
+            if (PrefabUtility.IsPartOfPrefabInstance(obj))
+            {
+                // Get the root of the prefab instance
+                GameObject prefabRoot = PrefabUtility.GetNearestPrefabInstanceRoot(obj);
+
+                // If the object is not the root, then it's part of the prefab but not the root
+                return prefabRoot != obj;
+            }
+
+            // The object is not part of a prefab instance
+            return false;
+        }
+
+    }
 }
