@@ -6,6 +6,9 @@ Repository with some handy unity snippets and tools, use at your own risk :).
 2. Notes - add documentation notes directly to your game objects
 3. PivotPointUtility - like 'Center on Children' but then on the bottom center ;)
 4. PrefabReplacer - replaces any object in your scene with a prefab selected from a set
+5. Attributes:
+	- HelpBoxAttribute -> easily add an explanation to a property visible in the inspector
+	
 
 ## To be added soon:
 1. Circlelizer - quickly position elements in a circle
