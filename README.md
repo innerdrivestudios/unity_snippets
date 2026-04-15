@@ -7,8 +7,10 @@ Repository with some handy unity snippets and tools, use at your own risk :).
 3. PivotPointUtility - like 'Center on Children' but then on the bottom center ;)
 4. PrefabReplacer - replaces any object in your scene with a prefab selected from a set
 5. Attributes:
-	- HelpBoxAttribute -> easily add an explanation to a property visible in the inspector
-	
+	- HelpBoxAttribute -> 		add an explanation to a property visible in the inspector
+	- ReadOnlyAttribute -> 		add a value in the inspector that is visible but not editable
+6. Properties:
+	- MinMaxRangeProperty ->	add a range of values, instead of using Vector2.xy for that
 
 ## To be added soon:
 1. Circlelizer - quickly position elements in a circle
