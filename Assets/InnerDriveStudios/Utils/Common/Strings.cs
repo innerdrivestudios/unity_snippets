@@ -22,8 +22,11 @@ namespace InnerDriveStudios.Util
         public const string NOT_EMPTY =
             "Please select an empty game object to act as the pivot";
 
-        public const string NO_MESHRENDERER =
+        public const string NO_MESHRENDERER_ALLOWED =
             "Please select a game object without a meshrenderer as the pivot";
+
+        public const string CHILD_MESHRENDERERS_REQUIRED =
+            "Please select a game object with meshrenderer children";
 
         public const string OPERATION_NOT_SUPPORTED =
             "Operation not supported";

@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,8 +11,67 @@ namespace InnerDriveStudios.Util
      * @author J.C.Wichman - InnerDriveStudios.com
      */
     public static class ColliderUtility
-	{
-		private const string SUB_MENU = "Colliders/";
+    {
+        private const string SUB_MENU = "Colliders/";
+		private const string HeightFitModePath = Settings.MENU_PATH + SUB_MENU + "Capsule Height Fit Mode";
+		private const string RadiusFitModePath = Settings.MENU_PATH + SUB_MENU + "Capsule && Sphere Radius Fit Mode";
+
+        private enum FitMode { Inside, Outside, Midway };
+        private static FitMode heightFitMode = FitMode.Inside;
+        private static FitMode radiusFitMode = FitMode.Inside;
+
+        static ColliderUtility() {
+            UpdateHeightFitModeCheckboxes();
+            UpdateRadiusFitModeCheckboxes();
+        }
+
+		private static void UpdateHeightFitModeCheckboxes()
+		{
+            Menu.SetChecked(HeightFitModePath + "/" + FitMode.Inside,  heightFitMode == FitMode.Inside);	
+            Menu.SetChecked(HeightFitModePath + "/" + FitMode.Outside, heightFitMode == FitMode.Outside);	
+            Menu.SetChecked(HeightFitModePath + "/" + FitMode.Midway,  heightFitMode == FitMode.Midway);	
+		}
+
+		private static void UpdateRadiusFitModeCheckboxes()
+		{
+			Menu.SetChecked(RadiusFitModePath + "/" + FitMode.Inside,  radiusFitMode == FitMode.Inside);
+			Menu.SetChecked(RadiusFitModePath + "/" + FitMode.Outside, radiusFitMode == FitMode.Outside);
+			Menu.SetChecked(RadiusFitModePath + "/" + FitMode.Midway,  radiusFitMode == FitMode.Midway);
+		}
+
+		private const string AutoRemoveCollidersBeforeAddingPath = Settings.MENU_PATH + SUB_MENU + "Auto remove colliders before adding";
+
+		[MenuItem(AutoRemoveCollidersBeforeAddingPath, priority = -100)]
+		private static void AutoRemoveCollidersBeforeAdding()
+		{
+			Menu.SetChecked(AutoRemoveCollidersBeforeAddingPath, !Menu.GetChecked(AutoRemoveCollidersBeforeAddingPath));
+		}
+
+		[MenuItem(HeightFitModePath + "/Inside", priority = -102)]
+        private static void HeightFitModeSetterInside () { SetHeightFitMode(FitMode.Inside);  }
+		[MenuItem(HeightFitModePath + "/Outside", priority = -101)]
+        private static void HeightFitModeSetterOutside () { SetHeightFitMode(FitMode.Outside);  }
+		[MenuItem(HeightFitModePath + "/Midway", priority = -100)]
+        private static void HeightFitModeSetterMidway () { SetHeightFitMode(FitMode.Midway);  }
+
+		[MenuItem(RadiusFitModePath + "/Inside", priority = -102)]
+		private static void RadiusFitModeSetterInside() { SetRadiusFitMode(FitMode.Inside); }
+		[MenuItem(RadiusFitModePath + "/Outside", priority = -101)]
+		private static void RadiusFitModeSetterOutside() { SetRadiusFitMode(FitMode.Outside); }
+		[MenuItem(RadiusFitModePath + "/Midway", priority = -100)]
+		private static void RadiusFitModeSetterMidway() { SetRadiusFitMode(FitMode.Midway); }
+
+		private static void SetHeightFitMode(FitMode pFitMode)
+		{
+            heightFitMode = pFitMode;
+            UpdateHeightFitModeCheckboxes();
+		}
+
+		private static void SetRadiusFitMode(FitMode pFitMode)
+		{
+			radiusFitMode = pFitMode;
+			UpdateRadiusFitModeCheckboxes();
+		}
 
 		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Remove all colliders from selected objects")]
 		private static void RemoveAllCollidersFromSelectedObjects()
@@ -29,6 +89,8 @@ namespace InnerDriveStudios.Util
         [MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding box collider")]
         private static void AddBoundingBoxCollider()
         {
+            if (Menu.GetChecked(AutoRemoveCollidersBeforeAddingPath)) RemoveAllCollidersFromSelectedObjects();
+
             foreach (GameObject gameObject in Selection.gameObjects)
             {
                 AddBoundingBoxCollider(gameObject);
@@ -37,29 +99,60 @@ namespace InnerDriveStudios.Util
 
         private static void AddBoundingBoxCollider(GameObject pGameObject)
 		{
-            if (!CheckSupportedObject(pGameObject)) return;
-
-            //the order of these operations is to make sure we only have to execute GetWorldBounds
-            //once and the transform Reset/Restore operations are not part of the Undo operation below
-            TransformMemento selectedTransform = new TransformMemento(pGameObject.transform);
-            selectedTransform.Reset();
-            bool hasBounds = Common.GetWorldBounds(pGameObject.transform, out Bounds worldBounds);
-            selectedTransform.Restore();
-
-            if (!hasBounds) return;
+            if (!Common.GetLocalBounds(pGameObject.transform, out Bounds localBounds)) return;
 
 			BoxCollider boxCollider = Undo.AddComponent<BoxCollider>(pGameObject);
-            boxCollider.center = worldBounds.center;
-            Vector3 size = worldBounds.size;
-			size.x = Mathf.Abs(size.x);
-			size.y = Mathf.Abs(size.y);
-			size.z = Mathf.Abs(size.z);
-			boxCollider.size = size;
+            boxCollider.center = localBounds.center;
+			boxCollider.size = localBounds.size;
+        }
+
+
+        [MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding sphere collider")]
+        private static void AddBoundingSphereCollider()
+        {
+            if (Menu.GetChecked(AutoRemoveCollidersBeforeAddingPath)) RemoveAllCollidersFromSelectedObjects();
+
+            foreach (GameObject gameObject in Selection.gameObjects)
+            {
+                AddBoundingSphereCollider(gameObject);
+            }
+        }
+
+        private static void AddBoundingSphereCollider(GameObject pGameObject)
+        {
+            if (!Common.GetLocalBounds(pGameObject.transform, out Bounds localBounds)) return;
+
+            SphereCollider sphereCollider = Undo.AddComponent<SphereCollider>(pGameObject);
+            sphereCollider.center = localBounds.center;
+
+            //This next part required a lot of experimentation and tinkering in the Unity Editor
+            //Often the radius would look right and be right in most situation, but then some kind
+            //of shitty exception to the rule would occur. 
+
+            //Required radius is the magnitude of the scaled global extents
+            Vector3 lossyScale = pGameObject.transform.lossyScale;
+            Vector3 scaledBounds = Vector3.Scale(localBounds.extents, lossyScale);
+            float scaledRequiredRadiusOutside = scaledBounds.magnitude;
+            float scaledRequiredRadiusInside = Mathf.Max(scaledBounds.x, Mathf.Max(scaledBounds.y, scaledBounds.z));
+
+            float radiusToUse = radiusFitMode switch
+			{
+				FitMode.Inside => scaledRequiredRadiusInside,
+				FitMode.Outside => scaledRequiredRadiusOutside,
+				FitMode.Midway => (scaledRequiredRadiusInside + scaledRequiredRadiusOutside) / 2,
+				_ => throw new NotImplementedException()
+			};
+            
+            //However unity automatically scales the set radius using the biggest scaling factor, 
+            //so we need to undo that...
+            sphereCollider.radius = radiusToUse / Mathf.Max(lossyScale.x, Mathf.Max(lossyScale.y, lossyScale.z));
         }
 
         [MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding capsule collider")]
         private static void AddBoundingCapsuleCollider()
         {
+            if (Menu.GetChecked(AutoRemoveCollidersBeforeAddingPath)) RemoveAllCollidersFromSelectedObjects();
+
             foreach (GameObject gameObject in Selection.gameObjects)
             {
                 AddBoundingCapsuleCollider(gameObject);
@@ -68,109 +161,97 @@ namespace InnerDriveStudios.Util
 
         private static void AddBoundingCapsuleCollider(GameObject pGameObject)
 		{
-            if (!CheckSupportedObject(pGameObject)) return;
-
-            //the order of these operations is to make sure we only have to execute GetWorldBounds
-            //once and the transform Reset/Restore operations are not part of the Undo operation below
-            TransformMemento selectedTransform = new TransformMemento(pGameObject.transform);
-            selectedTransform.Reset();
-            bool hasBounds = Common.GetWorldBounds(pGameObject.transform, out Bounds worldBounds);
-            selectedTransform.Restore();
-
-            if (!hasBounds) return;
+            if (!Common.GetLocalBounds(pGameObject.transform, out Bounds localBounds)) return;
 
             CapsuleCollider capsuleCollider = Undo.AddComponent<CapsuleCollider>(pGameObject);
 
-            capsuleCollider.center = worldBounds.center;
-            Vector3 extents = worldBounds.extents;
-            extents.x = Mathf.Abs(extents.x);
-            extents.y = Mathf.Abs(extents.y);
-            extents.z = Mathf.Abs(extents.z);
+            capsuleCollider.center = localBounds.center;
 
-            //deduct direction and use other dimensions to calculate the radius
-            int direction = 0;
-            float height = extents.x;
-            if (extents.y > extents.x && extents.y > extents.z)
+            //This next part required a lot of experimentation and tinkering in the Unity Editor
+            //Often the radius OR the height would look right and be right in most situation,
+            //but then some kind of shitty exception to the rule would occur. 
+
+            //The reason documentation is lacking for most of the code is that although it is 
+            //clear what it is doing, the reason WHY is "because experimentation told me so"
+            //All of this is related to 
+
+            Vector3 lossyScale = pGameObject.transform.lossyScale;
+            Vector3 scaledBounds = Vector3.Scale(localBounds.extents, lossyScale);
+
+            int direction = 0;              //the direction of the capsule collider 0 = x, 1 = y, 2 = z
+            float height = 0;               //the base height value (the x, y, z extent of the bounding box we are using, depending on our direction)
+            float radiusDivider = 0;        //radius needs to be divived by the max value of two scaling values (xy, yz, xz) based on the direction
+            float heightDivider = 0;        //height needs to be divided by the left over scaling value (x, y, z) based on the direction
+
+            Vector3 extents = localBounds.extents;
+            if (scaledBounds.x >= scaledBounds.y && scaledBounds.x >= scaledBounds.z)
+            {
+                direction = 0;
+                height = extents.x;
+
+                radiusDivider = Mathf.Max(lossyScale.y, lossyScale.z);
+                heightDivider = lossyScale.x;
+
+                //zero out this value, because it shouldn't be taken into account when calculating the capsule radius
+                scaledBounds.x = 0; 
+            }
+            else if (scaledBounds.y >= scaledBounds.x && scaledBounds.y >= scaledBounds.z)
             {
                 direction = 1;
                 height = extents.y;
-                extents.y = 0;
+
+                radiusDivider = Mathf.Max(lossyScale.x, lossyScale.z);
+                heightDivider = lossyScale.y;
+
+                //zero out this value, because it shouldn't be taken into account when calculating the capsule radius
+                scaledBounds.y = 0;
             }
-            else if (extents.z > extents.x && extents.z > extents.y)
+            else if (scaledBounds.z >= scaledBounds.x && scaledBounds.z >= scaledBounds.y)
             {
                 direction = 2;
                 height = extents.z;
-                extents.z = 0;
+
+                radiusDivider = Mathf.Max(lossyScale.x, lossyScale.y);
+                heightDivider = lossyScale.z;
+
+                //zero out this value, because it shouldn't be taken into account when calculating the capsule radius
+                scaledBounds.z = 0;
             }
 
-            capsuleCollider.height = height * 2;
             capsuleCollider.direction = direction;
-            capsuleCollider.radius = extents.magnitude;
-		}
 
-		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding sphere collider")]
-        private static void AddBoundingSphereCollider()
-        {
-            foreach (GameObject gameObject in Selection.gameObjects)
-            {
-                AddBoundingSphereCollider(gameObject);
-            }
-        }
+			float scaledRequiredRadiusOutside = scaledBounds.magnitude;
+			float scaledRequiredRadiusInside = Mathf.Max(scaledBounds.x, Mathf.Max(scaledBounds.y, scaledBounds.z));
 
-        private static void AddBoundingSphereCollider(GameObject pGameObject)
-		{
-            if (!CheckSupportedObject(pGameObject)) return;
+			float radiusToUse = radiusFitMode switch
+			{
+				FitMode.Inside => scaledRequiredRadiusInside,
+				FitMode.Outside => scaledRequiredRadiusOutside,
+				FitMode.Midway => (scaledRequiredRadiusInside + scaledRequiredRadiusOutside) / 2,
+				_ => throw new NotImplementedException()
+			};
 
-            //the order of these operations is to make sure we only have to execute GetWorldBounds
-            //once and the transform Reset/Restore operations are not part of the Undo operation below
-            TransformMemento selectedTransform = new TransformMemento(pGameObject.transform);
-            selectedTransform.Reset();
-            bool hasBounds = Common.GetWorldBounds(pGameObject.transform, out Bounds worldBounds);
-            selectedTransform.Restore();
+			capsuleCollider.radius = radiusToUse / radiusDivider;
 
-            if (!hasBounds) return;
+            float requiredHeightInside = 2 * height;
+            float requiredHeightOutside = 2 * (height + (capsuleCollider.radius * radiusDivider / heightDivider));
 
-            SphereCollider sphereCollider = Undo.AddComponent<SphereCollider>(pGameObject);
-            sphereCollider.center = worldBounds.center;
-			Vector3 extents = worldBounds.extents;
-            extents.x = Mathf.Abs(extents.x);
-            extents.y = Mathf.Abs(extents.y);
-            extents.z = Mathf.Abs(extents.z);
+            float heightToUse = heightFitMode switch
+			{
+				FitMode.Inside => requiredHeightInside,
+				FitMode.Outside => requiredHeightOutside,
+				FitMode.Midway => (requiredHeightInside + requiredHeightOutside) / 2,
+				_ => throw new NotImplementedException()
+			};
 
-            float height = extents.x;
-            if (extents.y > extents.x && extents.y > extents.z)
-            {
-                height = extents.y;
-            }
-            else if (extents.z > extents.x && extents.z > extents.y)
-            {
-                height = extents.z;
-            }
-
-            sphereCollider.radius = height;
-		}
-
-        private static bool CheckSupportedObject(GameObject pGameObject)
-        {
-            if (Common.IsPartOfPrefabInstanceButNotRoot(pGameObject))
-            {
-                EditorUtility.DisplayDialog(
-                        Strings.OPERATION_NOT_SUPPORTED,
-                        Strings.CHILD_OPERATION_ONLY_SUPPORTED_IN_PREFAB_EDIT_MODE,
-                        Strings.OK
-                    );
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            capsuleCollider.height = heightToUse;
         }
 
         [MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding capsule collider", true)]
 		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding box collider", true)]
 		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding sphere collider", true)]
-		private static bool IsGameObjectSelected()
+        [MenuItem(Settings.MENU_PATH + SUB_MENU + "Remove all colliders from selected objects", true)]
+        private static bool IsGameObjectSelected()
 		{
 			return Selection.activeGameObject != null;
 		}
