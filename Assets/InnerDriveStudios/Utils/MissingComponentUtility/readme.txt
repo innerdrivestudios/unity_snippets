@@ -1,0 +1,16 @@
+Description:
+- todo
+
+For example: 
+- todo
+
+Usage:
+- todo
+
+Version history:
+- Version 1 - Base version
+- Version 2 - Added demo / Fixed namespaces
+- Version 3 - Added the option to add bounding box/capsule/sphere colliders
+- Vection 4 - Rewrote the code to improve the bounds matching
+- Version 5 - Added Fitmode options for radius and height: Inside, Outside, Midway
+

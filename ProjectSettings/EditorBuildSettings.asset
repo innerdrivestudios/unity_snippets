@@ -4,5 +4,38 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/InnerDriveStudios/Utils/ColliderUtility/Demo/ColliderUtilityDemo_1_SingleObjects.unity
+    guid: c5e85b9bb5dff8449ae73254ca5dcf90
+  - enabled: 1
+    path: Assets/InnerDriveStudios/Utils/ColliderUtility/Demo/ColliderUtilityDemo_2_NestedObjects.unity
+    guid: 5af8d10a275f33e4892ae80d2abcaf71
+  - enabled: 1
+    path: Assets/InnerDriveStudios/Utils/ColliderUtility/Demo/ColliderUtilityDemo_3_Primitives.unity
+    guid: 46b56d5baadf95a449de4776bc1b0477
+  - enabled: 1
+    path: Assets/InnerDriveStudios/Attributes/HelpBoxAttribute/Demo/HelpBoxAttributeDemo.unity
+    guid: de4b3c64221daae449d152aaf93aad74
+  - enabled: 1
+    path: Assets/InnerDriveStudios/Properties/MinMaxRangeProperty/Demo/MinMaxRangePropertyDemo.unity
+    guid: cc351be0fe8fc9740bc8b710843e869b
+  - enabled: 1
+    path: Assets/InnerDriveStudios/Utils/MissingComponentUtility/Demo/MissingComponentUtility.unity
+    guid: 3badcea4263f9934ebde840616d85ef8
+  - enabled: 1
+    path: Assets/InnerDriveStudios/Utils/Notes/Demo/NotesDemo.unity
+    guid: 1faedefd19e760040bba301e2db7b61d
+  - enabled: 1
+    path: Assets/InnerDriveStudios/Utils/PivotPointUtility/Demo/PivotPointUtilityDemo.unity
+    guid: e81d0b6cc38fd3d4ba0aa6425e1056ce
+  - enabled: 1
+    path: Assets/InnerDriveStudios/Utils/PrefabReplacer/Demo/PrefabReplacerDemo.unity
+    guid: 7c21ccd5995e215428ec49eaf5e24746
+  - enabled: 1
+    path: Assets/InnerDriveStudios/Attributes/ReadOnlyAttribute/Demo/ReadOnlyDemo.unity
+    guid: 70c1bf0f9da72094592835874b6d32a1
+  - enabled: 1
+    path: Assets/InnerDriveStudios/Utils/StagedScreenshotUtility/Demo/ScreenshotDemo.unity
+    guid: 69ef13230b3aad44bb38fb5edfb2d1a0
   m_configObjects: {}
