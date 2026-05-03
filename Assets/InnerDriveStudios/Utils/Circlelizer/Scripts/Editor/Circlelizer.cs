@@ -9,53 +9,62 @@ using UnityEngine.SceneManagement;
 namespace InnerDriveStudios.Util
 {
     /// <summary>
-    /// Editor tool that arranges the current scene selection in a circular layout with live preview.
+    /// EditorWindow that arranges the currently selected scene objects in a circle or spiral.
+    ///
+    /// The tool uses an explicit preview session:
+    /// - Activate captures the selected transforms and their original state.
+    /// - While active, UI and SceneView handles update the captured transforms as a live preview.
+    /// - Apply commits the previewed transforms through Unity's Undo system.
+    /// - Revert, selection changes, or closing/discarding the window restores the captured original state.
+    ///
+    /// Settings are saved whenever the session deactivates, regardless of whether the preview was applied or reverted.
     /// </summary>
     public class Circlelizer : EditorWindow
     {
-        // Used to store all the settings for this dialog
-        
+        /// STATIC FIELDS & METHODS
+
+        // This ID is used to load & save all the settings for this dialog upon activating & deactivating
+
         private static readonly string saveDataIdentifier = MethodBase.GetCurrentMethod().DeclaringType.Name;
 
-        // All the settings we can change for the UI/Selection
+        // Method to actually open the Circlelizer window
 
-        [SerializeField] private Vector3 centerPoint = Vector3.zero;
-        [SerializeField] private float radius = 5f;
-        [SerializeField] private float startRotation = 0f;
-        [SerializeField] private bool spiral = false;
-        [SerializeField] private float rotations = 1f;
-        [SerializeField] private bool lookAtCenter = false;
-        [SerializeField] private Quaternion facing = Quaternion.identity;
+        [MenuItem(Settings.MENU_PATH + "Circlelizer")]
+        private static void Init()
+        {
+            Circlelizer window = GetWindow<Circlelizer>("Circlelizer");
+            window.minSize = new Vector2(350, 200);
+            window.Show();
+        }
 
-        // SelectionStatus is updated by calling UpdateSelectionStatus on selectionChanged
-        private enum SelectionStatus { None, Invalid, Ok }
-        private SelectionStatus selectionStatus = SelectionStatus.None;
-        private bool activated = false;
+        /// ADDITIONAL DATA TYPES
 
-        // Define possible default circle facings (eg the direction the circle normal should point)
+        /// <summary>
+        /// Describes a default facing with a label and a direction (ie normal)
+        /// </summary>
         private readonly struct Facing
         {
             public readonly string label;
             public readonly Vector3 normal;
 
-            public Facing (string pLabel, Vector3 pNormal)
+            public Facing(string pLabel, Vector3 pNormal)
             {
                 label = pLabel;
                 normal = pNormal;
             }
         }
 
+        /// <summary>
+        /// A set of default facings
+        /// </summary>
         private static readonly Facing[] facings = {
                     new ("-X", Vector3.left),
                     new ("X", Vector3.right),
-                    new ("-Y", Vector3.down), 
+                    new ("-Y", Vector3.down),
                     new ("Y", Vector3.up),
-                    new ("-Z", Vector3.back), 
+                    new ("-Z", Vector3.back),
                     new ("Z", Vector3.forward)
                 };
-
-        // Whenever the selection changes, we need to apply/revert any changes, 
-        // and store the memento's for the selected transforms...
 
         /// <summary>
         /// Captured transform state for one object at the start of the current preview session.
@@ -71,7 +80,7 @@ namespace InnerDriveStudios.Util
                 rotation = pTransform.rotation;
             }
 
-            public void ResetPositionAndRotation (Transform pTransform)
+            public void ResetPositionAndRotation(Transform pTransform)
             {
                 pTransform.position = position;
                 pTransform.rotation = rotation;
@@ -83,162 +92,64 @@ namespace InnerDriveStudios.Util
             }
         }
 
-        // Original transform state captured whenever the window opens or the selection changes.
+        // Serialized preview settings. These are persisted to EditorPrefs when the tool deactivates.
+
+        [SerializeField] private Vector3 centerPoint = Vector3.zero;
+        [SerializeField] private float radius = 5f;
+        [SerializeField] private float startRotation = 0f;
+        [SerializeField] private bool spiral = false;
+        [SerializeField] private float rotations = 1f;
+        [SerializeField] private bool lookAtCenter = false;
+        [SerializeField] private Quaternion facing = Quaternion.identity;
+
+        // Returned by GetSelectionStatus. Controls whether the tool can activate.
+        private enum SelectionStatus { None, Invalid, NeedMoreThanOne, Ok }
+        private SelectionStatus currentSelectionStatus;
+
+        // True only while a preview session is active.
+        private bool isActivated = false;
+
+        // Preserve Unity's global Tools.hidden value so the tool does not unhide tools that were already hidden.
+        private bool previousToolsHidden = false;
+
+        // Original transform state captured at activation. Used to revert previews and create a clean Undo record on apply.
         private readonly Dictionary<Transform, TransformState> originalStates = new();
 
-        // True while the current preview differs from the snapshotted baseline.
-        private bool selectionTransformsHaveChanged = false;
+        // Stable snapshot of the activated selection. Do not rely on live Selection while previewing.
+        private readonly List<Transform> cachedTransforms = new List<Transform>();
 
-        // Guards against recursive session refreshes while applying or cancelling. Is this needed?
-        // private bool isApplyingOrCancelling = false;
-
-        [MenuItem(Settings.MENU_PATH + "Circlelizer")]
-        private static void Init()
+        /// <summary>
+        /// When the selection status changes we need to update our UI so we:
+        /// - store the current selection status
+        /// - refresh the UI
+        /// - make sure we revert and deactivate if a "session" was in progress
+        /// </summary>
+        private void OnSelectionChange()
         {
-            Circlelizer window = GetWindow<Circlelizer>("Circlelizer");
-            window.minSize = new Vector2(350, 200);
-            window.Show();
-        }
-
-        private void OnEnable()
-        {
-            Tools.hidden = true;
-
-            activated = false;
-
-            LoadDialogSettings();
-
-            SceneView.duringSceneGui += OnSceneGUI;
-
-            // Register for selection changes, and force a selectionchange update...
-            Selection.selectionChanged -= OnSelectionChanged;
-            Selection.selectionChanged += OnSelectionChanged;
-            OnSelectionChanged();
-        }
-
-        private void OnDisable()
-        {
-            Tools.hidden = false;
-
-            SaveDialogSettings();
-
-            SceneView.duringSceneGui -= OnSceneGUI;
-            Selection.selectionChanged -= OnSelectionChanged;
-        }
-
-        private void LoadDialogSettings()
-        {
-            string data = EditorPrefs.GetString(saveDataIdentifier, JsonUtility.ToJson(this, false));
-            JsonUtility.FromJsonOverwrite(data, this);
-        }
-
-        private void SaveDialogSettings()
-        {
-            string data = JsonUtility.ToJson(this, false);
-            EditorPrefs.SetString(saveDataIdentifier, data);
-        }
-
-        private void OnSelectionChanged ()
-        {
-            if (selectionTransformsHaveChanged) HandlePreviousSelectionChanges();
-
-            UpdateSelectionStatus();
-
-            if (selectionStatus == SelectionStatus.Ok) RecordCurrentSelectionTransformStates();
-
+            currentSelectionStatus = GetSelectionStatus();
             Repaint();
-        }
 
-        private void HandlePreviousSelectionChanges()
-        {
-            if (!selectionTransformsHaveChanged) return;
-           
-            bool applyChanges = EditorUtility.DisplayDialog(
-                    "Apply / Revert",
-                    "Do you wish to Apply or Revert your modified transforms?",
-                    "Apply",
-                    "Revert"
-                );
-
-            if (applyChanges)   ApplyAllChanges();
-            else                RevertAllChanges();
-        }
-
-        private void ApplyAllChanges()
-        {
-            // find all not deleted transforms first... 
-            Transform[] validTransforms = originalStates.Where (x => x.Key != null).Select (x => x.Key).ToArray();
-
-            // record their current state and reset them so we can record the change in an undo object
-            Dictionary<Transform, TransformState> currentState = new();
-            foreach (Transform validTransform in validTransforms)
-            {
-                currentState[validTransform] = new TransformState(validTransform);
-                originalStates[validTransform].ResetPositionAndRotation(validTransform);
-            }
-    
-            // Start a new undo group
-            Undo.IncrementCurrentGroup();
-            int undoGroup = Undo.GetCurrentGroup();
-            Undo.SetCurrentGroupName("Apply Circlelize Transform Changes");
-
-            Undo.RecordObjects(validTransforms, "Apply Transform Changes");
-
-            // Mark every involved scene dirty once.
-            HashSet<Scene> dirtyScenes = new ();
-
-            foreach (Transform validTransform in validTransforms)
-            {
-                //Reset 
-                currentState[validTransform].ResetPositionAndRotation(validTransform);
-                
-                //Get scene
-                Scene scene = validTransform.gameObject.scene;
-                if (scene.IsValid() && scene.isLoaded) dirtyScenes.Add(scene);
-            }
-
-            foreach (Scene scene in dirtyScenes) EditorSceneManager.MarkSceneDirty(scene);
-
-            Undo.CollapseUndoOperations(undoGroup);
-
-            SaveDialogSettings();
-
-            selectionTransformsHaveChanged = false;
-        }
-
-        private void RevertAllChanges()
-        {
-            foreach (var kv in originalStates)
-            {
-                kv.Value.ResetPositionAndRotation(kv.Key);
-            }
-
-            LoadDialogSettings();
-
-            selectionTransformsHaveChanged = false;
-            hasUnsavedChanges = false;
+            if (isActivated) RevertAllChanges();
         }
 
         /// <summary>
         /// Validates the current Unity selection for use by the tool.
         /// Only scene objects are supported.
         /// </summary>
-        private void UpdateSelectionStatus()
+        private SelectionStatus GetSelectionStatus()
         {
             int count = Selection.gameObjects.Length;
 
             // No objects selected...
             if (count == 0)
             {
-                selectionStatus = SelectionStatus.None;
-                return;
+                return SelectionStatus.None;
             }
 
             // Objects other than gameobjects selected ...
             if (Selection.objects.Length != count)
             {
-                selectionStatus = SelectionStatus.Invalid;
-                return;
+                return SelectionStatus.Invalid;
             }
 
             // Objects selected that are not scene objects (eg prefabs)...
@@ -246,139 +157,22 @@ namespace InnerDriveStudios.Util
             {
                 if (!Selection.gameObjects[i].scene.IsValid())
                 {
-                    selectionStatus = SelectionStatus.Invalid;
-                    return;
+                    return SelectionStatus.Invalid;
                 }
             }
 
-            selectionStatus = SelectionStatus.Ok;
-        }
-
-        private void RecordCurrentSelectionTransformStates ()
-        {
-            originalStates.Clear();
-
-            foreach (GameObject go in Selection.gameObjects)
-            {
-                originalStates[go.transform] = new TransformState(go.transform);
-            }
+            return (count == 1) ? SelectionStatus.NeedMoreThanOne : SelectionStatus.Ok;
         }
 
         private void OnGUI()
         {
-            activated = GUILayout.Toggle(activated, activated ? "Deactivate" : "Activate", GUI.skin.button);
-
-            bool active = false;
-            GUI.enabled = activated;
-
-
-            bool editorUIChangesMadeThisFrame = ShowSettingsUI();
-            selectionTransformsHaveChanged |= editorUIChangesMadeThisFrame;
-
-            EditorGUILayout.Space();
-
-            ShowApplyRevertOptions();
-
-            ShowSelectionStatusHelpBox();
-
-            if (editorUIChangesMadeThisFrame)
-            {
-                // Force the scene view to update which will trigger SceneView.duringSceneGui 
-                // which will call OnSceneGUI. In other words: Editor UI changes trigger a Scene UI update.
-                SceneView.RepaintAll();
-
-                // Mark the window state as changed (show asterisk and save message)
-                UpdateWindowDirtyState();
-            }
-
-            GUI.enabled = active;
-        }
-
-        private bool ShowSettingsUI()
-        {
-            bool prev = EditorGUIUtility.wideMode;
-            EditorGUIUtility.wideMode = true;
-
-            // Only make the UI editable when the selection status is Ok
-            EditorGUI.BeginDisabledGroup(selectionStatus != SelectionStatus.Ok);
-
-                // Track changes in the UI
-                EditorGUI.BeginChangeCheck();
-
-                    // Vector3 Position field
-                    centerPoint = EditorGUILayout.Vector3Field("Position", centerPoint);
-
-                    // Float start rotation field
-                    startRotation = EditorGUILayout.FloatField("Start rotation", startRotation);
-                    radius = EditorGUILayout.FloatField("Radius", radius);
-                    lookAtCenter = EditorGUILayout.Toggle("Look at center?", lookAtCenter);
-
-                    // Reset facing button menu
-                    EditorGUILayout.BeginHorizontal();
-                    EditorGUILayout.PrefixLabel("Reset facing:");
-                    foreach (Facing presetFacing in facings)
-                    {
-                        if (GUILayout.Button(presetFacing.label))
-                        {
-                            facing = Quaternion.FromToRotation(Vector3.forward, presetFacing.normal);
-                        }
-                    }
-                    EditorGUILayout.EndHorizontal();
-
-                    // Left over settings...
-                    spiral = EditorGUILayout.Toggle("Spiral?", spiral);
-                    rotations = EditorGUILayout.FloatField("Rotations?", rotations);
-
-                // Track if there were changes made this frame and overall
-                bool changesMadeThisFrame = EditorGUI.EndChangeCheck();
-
-            EditorGUI.EndDisabledGroup();
-
-            EditorGUIUtility.wideMode = prev;
-
-            return changesMadeThisFrame;
-        }
-
-        private void ShowApplyRevertOptions()
-        {
-            EditorGUILayout.BeginHorizontal();
-            using (new EditorGUI.DisabledScope(!selectionTransformsHaveChanged))
-            {
-                if (GUILayout.Button("Apply"))
-                {
-                    ApplyAllChanges();
-                }
-
-                if (GUILayout.Button("Cancel"))
-                {
-                    RevertAllChanges();
-                }
-            }
-            EditorGUILayout.EndHorizontal();
-        }
-
-        private void ShowSelectionStatusHelpBox()
-        {
-            switch (selectionStatus)
-            {
-                case SelectionStatus.None:
-                    EditorGUILayout.HelpBox("Select some objects in the scene to get started!", MessageType.Info);
-                    break;
-                case SelectionStatus.Invalid:
-                    EditorGUILayout.HelpBox("Circlelizer only works on scene objects!", MessageType.Warning);
-                    break;
-                case SelectionStatus.Ok:
-                    //    if (!hasPreviewChanges)
-                    //    {
-                    //        EditorGUILayout.HelpBox("The current selection is previewed immediately. Use Apply to commit or Cancel to restore the snapshotted transforms.", MessageType.None);
-                    //    }
-                    break;
-            }
+            if (!isActivated)   RenderNonActivatedUI();
+            else                RenderActivatedUI();
         }
 
         private void OnSceneGUI(SceneView sceneView)
         {
-            if (!activated) return;
+            if (!isActivated) return;
 
             EditorGUI.BeginChangeCheck();
 
@@ -397,16 +191,13 @@ namespace InnerDriveStudios.Util
             Vector3 forward = facing * Vector3.forward;
 
             Handles.color = new Color(0, 1, 0, 0.1f);
-            
-            if (selectionStatus == SelectionStatus.None) Handles.color = new Color(1, 0.8f, 0, 0.1f);
-            if (selectionStatus == SelectionStatus.Invalid) Handles.color = new Color(1, 0, 0, 0.1f);
-            
+
             // Draw a disc to show our facing direction and where we consider the rotation to start
-            Handles.DrawSolidArc (centerPoint, forward, right, 359.6f, radius);
+            Handles.DrawSolidArc(centerPoint, forward, right, 359.6f, radius);
 
             Handles.color = new Color(0, 1, 0);
             Vector3 currentPos = centerPoint + radius * right;
-            Vector3 newPos = Handles.Slider (
+            Vector3 newPos = Handles.Slider(
                 currentPos,
                 right,
                 HandleUtility.GetHandleSize(currentPos) * 0.2f,
@@ -422,19 +213,242 @@ namespace InnerDriveStudios.Util
                 // Force the editor view to update which will call OnGUI.
                 Repaint();
 
-                // Mark the window state as changed (show asterisk and save message when we close)
-                UpdateWindowDirtyState();
+                UpdateAllTransforms();
             }
         }
+
+        /// <summary>
+        /// Applies the current preview settings to the captured activation snapshot.
+        /// </summary>
+        private void UpdateAllTransforms()
+        {
+            int count = cachedTransforms.Count;
+            if (count == 0) return;
+
+            float angleStep = rotations * 2 * Mathf.PI / count;
+            Vector3 right = facing * Vector3.right;
+            Vector3 up = facing * Vector3.up;
+            Vector3 forward = facing * Vector3.forward;
+
+            for (int i = 0; i < count; i++)
+            {
+                Transform t = cachedTransforms[i];
+                if (t == null) continue;
+
+                float angle = i * angleStep + Mathf.Deg2Rad * startRotation;
+                float radius = spiral ? (i * this.radius / count) : this.radius;
+                // Apply the 2D circle formula in the chosen facing plane.
+                t.position = centerPoint + Mathf.Cos(angle) * right * radius + Mathf.Sin(angle) * up * radius;
+
+                if (lookAtCenter)
+                {
+                    // Use the facing plane normal as the LookAt up vector.
+                    t.LookAt(centerPoint, forward);
+                }
+            }
+        }
+
+        /////////////////////////// NON ACTIVATED UI
+
+        private void RenderNonActivatedUI()
+        {
+            ShowInfoForCurrentSelectionStatus();
+
+            bool oldEnabled = GUI.enabled;
+            GUI.enabled = currentSelectionStatus == SelectionStatus.Ok;
+
+            if (GUILayout.Button("Activate"))
+            {
+                SelectionStatus selectionStatus = GetSelectionStatus();
+
+                if (selectionStatus == SelectionStatus.Ok) Activate();
+            }
+
+            GUI.enabled = oldEnabled;
+        }
+
+        private void ShowInfoForCurrentSelectionStatus()
+        {
+            switch (currentSelectionStatus)
+            {
+                case SelectionStatus.None:
+                    EditorGUILayout.HelpBox(
+                        "Select some objects in the scene to get started!",
+                        MessageType.Info
+                    );
+                    break;
+
+                case SelectionStatus.Invalid:
+                    EditorGUILayout.HelpBox(
+                        "Circlelizer only works on scene objects, make sure you don't accidentally " +
+                        "have assets selected in the ProjectWindow as well.",
+                        MessageType.Warning);
+                    break;
+
+                case SelectionStatus.NeedMoreThanOne:
+                    EditorGUILayout.HelpBox(
+                        "Select more than one object.",
+                        MessageType.Warning);
+                    break;
+
+                case SelectionStatus.Ok:
+                    EditorGUILayout.HelpBox(
+                        "Press 'Activate' to get started!",
+                        MessageType.Info
+                    );
+                    break;
+            }
+        }
+
+        /////////////////////////// ACTIVATED UI
+
+        private void RenderActivatedUI()
+        {
+            bool editorUIChangesMadeThisFrame = ShowSettingsUI();
+            
+            EditorGUILayout.Space();
+
+            ShowApplyRevertOptions();
+
+            if (editorUIChangesMadeThisFrame)
+            {
+                // Force the scene view to update which will trigger SceneView.duringSceneGui 
+                // which will call OnSceneGUI. In other words: Editor UI changes trigger a Scene UI update.
+                SceneView.RepaintAll();
+
+                UpdateAllTransforms();
+            }
+        }
+
+        private bool ShowSettingsUI()
+        {
+            bool prev = EditorGUIUtility.wideMode;
+            EditorGUIUtility.wideMode = true;
+
+            // Only make the UI editable when the selection status is Ok
+            EditorGUI.BeginDisabledGroup(currentSelectionStatus != SelectionStatus.Ok);
+
+            // Track changes in the UI
+            EditorGUI.BeginChangeCheck();
+
+            // Vector3 Position field
+            centerPoint = EditorGUILayout.Vector3Field("Position", centerPoint);
+
+            // Float start rotation field
+            startRotation = EditorGUILayout.FloatField("Start rotation", startRotation);
+            radius = EditorGUILayout.FloatField("Radius", radius);
+
+            bool lookAtCenterOld = lookAtCenter;
+
+            lookAtCenter = EditorGUILayout.Toggle("Look at center?", lookAtCenter);
+
+            if (lookAtCenterOld && !lookAtCenter) RevertRotationChanges();
+
+            // Reset facing button menu
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PrefixLabel("Reset facing:");
+            foreach (Facing presetFacing in facings)
+            {
+                if (GUILayout.Button(presetFacing.label))
+                {
+                    facing = Quaternion.FromToRotation(Vector3.forward, presetFacing.normal);
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+
+            // Left over settings...
+            spiral = EditorGUILayout.Toggle("Spiral?", spiral);
+            rotations = EditorGUILayout.FloatField("Rotations?", rotations);
+
+            // Track if there were changes made this frame and overall
+            bool changesMadeThisFrame = EditorGUI.EndChangeCheck();
+
+            EditorGUI.EndDisabledGroup();
+
+            EditorGUIUtility.wideMode = prev;
+
+            return changesMadeThisFrame;
+        }
+
+        private void ShowApplyRevertOptions()
+        {
+            EditorGUILayout.BeginHorizontal();
+
+            if (GUILayout.Button("Apply"))
+            {
+                ApplyAllChanges();
+            }
+
+            if (GUILayout.Button("Revert"))
+            {
+                RevertAllChanges();
+            }
+
+            EditorGUILayout.EndHorizontal();
+        }
+
+        /////////////////////////// ACTIVATION & DEACTIVATION CODE
+
+        private void Activate()
+        {
+            RecordCurrentSelectionTransformStates();
+            LoadDialogSettings();
+            isActivated = true;
+            previousToolsHidden = Tools.hidden;
+            Tools.hidden = true;
+
+            centerPoint = GetStartingCenterPosition();
+
+            SceneView.duringSceneGui -= OnSceneGUI;
+            SceneView.duringSceneGui += OnSceneGUI;
+
+            // Create the initial preview immediately, then mark the window dirty so closing prompts Apply/Discard.
+            UpdateAllTransforms();
+            UpdateWindowDirtyState();
+            Repaint();
+            SceneView.RepaintAll();
+        }
+
+        /// <summary>
+        /// Ends the active preview session. Safe to call multiple times.
+        /// </summary>
+        private void Deactivate()
+        {
+            if (!isActivated) return;
+
+            SaveDialogSettings();
+            hasUnsavedChanges = false;
+            isActivated = false;
+            Tools.hidden = previousToolsHidden;
+
+            SceneView.duringSceneGui -= OnSceneGUI;
+
+            Repaint();
+            SceneView.RepaintAll();
+        }
+
+        /////////////////////////// LOAD & SAVE
+
+        private void LoadDialogSettings()
+        {
+            string data = EditorPrefs.GetString(saveDataIdentifier, JsonUtility.ToJson(this, false));
+            JsonUtility.FromJsonOverwrite(data, this);
+        }
+
+        private void SaveDialogSettings()
+        {
+            string data = JsonUtility.ToJson(this, false);
+            EditorPrefs.SetString(saveDataIdentifier, data);
+        }
+
+        /////////////////////////// WINDOW CLOSE HANDLING
 
         /// <summary>
         /// Synchronizes the EditorWindow unsaved-changes prompt with the preview session state.
         /// </summary>
         private void UpdateWindowDirtyState()
         {
-            if (hasUnsavedChanges) return;
-
-            hasUnsavedChanges = selectionTransformsHaveChanged;
+            hasUnsavedChanges = true;
             saveChangesMessage = "You have unapplied Circlelizer changes. Apply to keep the circular layout, or discard to restore the original transforms.";
         }
 
@@ -444,29 +458,136 @@ namespace InnerDriveStudios.Util
             base.SaveChanges();
         }
 
-
         public override void DiscardChanges()
         {
             RevertAllChanges();
             base.DiscardChanges();
         }
 
+        /////////////////////////// APPLY & REVERT HANDLING
+
+        /// <summary>
+        /// Commits the current preview state and creates a single Undo operation.
+        /// </summary>
+        private void ApplyAllChanges()
+        {
+            // Deleted objects can leave null Transform references in the captured state, so filter them out first.
+            Transform[] validTransforms = originalStates.Where(x => x.Key != null).Select(x => x.Key).ToArray();
+
+            if (validTransforms.Length > 0)
+            {
+                // Store the previewed state, reset to the original state, then record Undo from original -> preview.
+                Dictionary<Transform, TransformState> currentState = new();
+                foreach (Transform validTransform in validTransforms)
+                {
+                    currentState[validTransform] = new TransformState(validTransform);
+                    originalStates[validTransform].ResetPositionAndRotation(validTransform);
+                }
+
+                // Start a new undo group
+                Undo.IncrementCurrentGroup();
+                int undoGroup = Undo.GetCurrentGroup();
+                Undo.SetCurrentGroupName("Apply Circlelize Transform Changes");
+
+                Undo.RecordObjects(validTransforms, "Apply Transform Changes");
+
+                // Mark every involved scene dirty once.
+                HashSet<Scene> dirtyScenes = new();
+
+                foreach (Transform validTransform in validTransforms)
+                {
+                    currentState[validTransform].ResetPositionAndRotation(validTransform);
+
+                    Scene scene = validTransform.gameObject.scene;
+                    if (scene.IsValid() && scene.isLoaded) dirtyScenes.Add(scene);
+                }
+
+                foreach (Scene scene in dirtyScenes) EditorSceneManager.MarkSceneDirty(scene);
+
+                Undo.CollapseUndoOperations(undoGroup);
+            }
+
+            Deactivate();
+        }
+
+        /// <summary>
+        /// Restores the full captured transform state and ends the current preview session.
+        /// </summary>
+        private void RevertAllChanges()
+        {
+            foreach (var kv in originalStates)
+            {
+                if (kv.Key == null) continue;
+                kv.Value.ResetPositionAndRotation(kv.Key);
+            }
+
+            Deactivate();
+        }
+
+        /// <summary>
+        /// Restores only rotations while keeping the position preview active.
+        /// Used when disabling Look At Center during an active session.
+        /// </summary>
+        private void RevertRotationChanges()
+        {
+            foreach (var kv in originalStates)
+            {
+                if (kv.Key == null) continue;
+                kv.Value.ResetRotation(kv.Key);
+            }
+
+            // Do not deactivate; this is an in-session adjustment for the Look At Center toggle.
+        }
+
+        /////////////////////////// UTILITY METHODS
+
+        private Vector3 GetStartingCenterPosition()
+        {
+            if (cachedTransforms.Count == 0) return Vector3.zero;
+
+            Vector3 totalPositions = Vector3.zero;
+
+            foreach (Transform selection in cachedTransforms)
+            {
+                totalPositions += selection.position;
+            }
+
+            return totalPositions / cachedTransforms.Count;
+        }
+
+        private void RecordCurrentSelectionTransformStates()
+        {
+            originalStates.Clear();
+            cachedTransforms.Clear();
+
+            foreach (GameObject go in Selection.gameObjects)
+            {
+                if (go == null) continue;
+
+                originalStates[go.transform] = new TransformState(go.transform);
+                cachedTransforms.Add(go.transform);
+            }
+        }
+
+        private void OnEnable()
+        {
+            OnSelectionChange();
+        }
+
+        private void OnDisable()
+        {
+            if (isActivated && hasUnsavedChanges)
+            {
+                // Closing/discarding an active preview restores the captured transforms.
+                RevertAllChanges();
+            }
+            else
+            {
+                // No preview changes are pending; just tear down subscriptions/state.
+                Deactivate();
+            }
+        }
+
     }
 }
 
-
-//TODO:
-
-/// Workflow:
-/// - When the window opens, the current selection is snapshotted immediately.
-/// - When the selection changes, the previous preview is restored, the new selection is snapshotted,
-///   and the preview is applied immediately with the current settings.
-/// - Any parameter or handle change updates the same preview live.
-/// - Apply commits the current preview as a single explicit Undo step.
-/// - Cancel restores the selection to the snapshotted transform state.
-/// - Closing the window with unapplied preview changes triggers Unity's unsaved-changes prompt.
-/// 
-/// Notes:
-/// - Preview changes are intentionally non-destructive and are not recorded in Undo.
-/// - Undo is recorded only when Apply is pressed, and all affected objects are grouped into one
-///   deterministic undo operation.
