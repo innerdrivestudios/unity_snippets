@@ -2,44 +2,73 @@ using InnerDriveStudios.Util;
 using UnityEditor;
 using UnityEngine;
 
+/// <summary>
+/// Unity Editor window that visualizes mesh data for the currently selected GameObject
+/// directly in the Scene view.
+/// </summary>
+/// <remarks>
+/// Supports meshes from both <see cref="MeshFilter"/> and <see cref="SkinnedMeshRenderer"/>.
+/// The window can draw vertices, triangle wireframes, normals, and UV coordinate labels.
+/// </remarks>
 public class MeshVisualizerWindow : EditorWindow
 {
+    // Controls which mesh features are drawn in the Scene view.
     static bool showVertices = true;
     static bool showTriangles = true;
     static bool showNormals = false;
     static bool showUVs = false;
 
+    // Controls how normal arrows are rendered.
     static bool normalDepthFade = true;
     static bool normalBackfaceCull = false;
 
+    // Draws every Nth normal to reduce clutter on dense meshes.
     static int normalStep = 1;
 
+    // Scene-view scale multipliers for visualization geometry.
     static float vertexSize = 0.06f;
     static float normalLength = 0.25f;
     static float normalLineThickness = 0.015f;
     static float normalHeadLength = 0.08f;
     static float normalHeadWidthMultiplier = 3f;
 
+    // Default visualization colors.
     static Color vertexColor = Color.yellow;
     static Color wireColor = Color.green;
     static Color normalColor = Color.cyan;
 
+    /// <summary>
+    /// Opens the Mesh Visualizer editor window from the configured Unity menu path.
+    /// </summary>
     [MenuItem(Settings.MENU_PATH + "Mesh Visualizer")]
     public static void Open()
     {
         GetWindow<MeshVisualizerWindow>("Mesh Visualizer");
     }
 
+    /// <summary>
+    /// Subscribes this window to Scene view drawing when the editor window is enabled.
+    /// </summary>
     void OnEnable()
     {
         SceneView.duringSceneGui += DrawScene;
     }
 
+    /// <summary>
+    /// Unsubscribes this window from Scene view drawing when the editor window is disabled.
+    /// </summary>
     void OnDisable()
     {
         SceneView.duringSceneGui -= DrawScene;
     }
 
+    /// <summary>
+    /// Draws the Mesh Visualizer editor UI.
+    /// </summary>
+    /// <remarks>
+    /// The UI shows basic mesh statistics for the selected object and exposes controls for
+    /// enabling, disabling, coloring, and scaling each visualization type.
+    /// </remarks>
     void OnGUI()
     {
         GameObject go = Selection.activeGameObject;
@@ -116,9 +145,18 @@ public class MeshVisualizerWindow : EditorWindow
             normalColor = Color.cyan;
         }
 
+        // Refresh all Scene views so setting changes are reflected immediately.
         SceneView.RepaintAll();
     }
 
+    /// <summary>
+    /// Gets the mesh associated with a GameObject.
+    /// </summary>
+    /// <param name="go">The selected GameObject to inspect.</param>
+    /// <returns>
+    /// The shared mesh from a <see cref="MeshFilter"/> or <see cref="SkinnedMeshRenderer"/>,
+    /// or <c>null</c> if the object has no supported mesh component.
+    /// </returns>
     static Mesh GetMesh(GameObject go)
     {
         if (!go) return null;
@@ -132,6 +170,15 @@ public class MeshVisualizerWindow : EditorWindow
         return null;
     }
 
+    /// <summary>
+    /// Draws the active mesh visualization overlays in the Scene view.
+    /// </summary>
+    /// <param name="sceneView">The Scene view currently being rendered.</param>
+    /// <remarks>
+    /// Mesh vertices are transformed from local space into world space before drawing.
+    /// Triangle edges are rendered as wireframe lines, vertices as handle spheres, normals as
+    /// custom arrows, and UVs as labels positioned at each vertex.
+    /// </remarks>
     static void DrawScene(SceneView sceneView)
     {
         GameObject go = Selection.activeGameObject;
@@ -146,6 +193,7 @@ public class MeshVisualizerWindow : EditorWindow
         Vector3[] normals = mesh.normals;
         int[] triangles = mesh.triangles;
 
+        // Respect Scene view depth so hidden geometry is not drawn over foreground objects.
         Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
 
         if (showTriangles)
@@ -202,6 +250,17 @@ public class MeshVisualizerWindow : EditorWindow
         }
     }
 
+    /// <summary>
+    /// Draws arrow-shaped normal indicators for the selected mesh.
+    /// </summary>
+    /// <param name="transform">The selected object's transform, used to convert mesh data to world space.</param>
+    /// <param name="vertices">The mesh vertices in local space.</param>
+    /// <param name="normals">The mesh normals in local space.</param>
+    /// <param name="camera">The active Scene view camera.</param>
+    /// <remarks>
+    /// Normal arrows are scaled with <see cref="HandleUtility.GetHandleSize(Vector3)"/> so they
+    /// remain visually consistent at different Scene view zoom levels.
+    /// </remarks>
     static void DrawNormalArrows(
         Transform transform,
         Vector3[] vertices,
@@ -242,6 +301,7 @@ public class MeshVisualizerWindow : EditorWindow
             Vector3 end = world + normal * arrowLength;
             Vector3 headBase = end - normal * headLength;
 
+            // Build a camera-facing basis so the arrow thickness remains visible from the Scene camera.
             Vector3 right = Vector3.Cross(normal, camForward);
 
             if (right.sqrMagnitude < 0.0001f)
@@ -256,6 +316,14 @@ public class MeshVisualizerWindow : EditorWindow
         }
     }
 
+    /// <summary>
+    /// Draws a four-sided anti-aliased shaft between two points.
+    /// </summary>
+    /// <param name="start">The world-space start position of the shaft.</param>
+    /// <param name="end">The world-space end position of the shaft.</param>
+    /// <param name="right">The right vector of the shaft's local drawing basis.</param>
+    /// <param name="up">The up vector of the shaft's local drawing basis.</param>
+    /// <param name="radius">The shaft radius in Scene view units.</param>
     static void DrawThickShaft(
         Vector3 start,
         Vector3 end,
@@ -273,6 +341,14 @@ public class MeshVisualizerWindow : EditorWindow
         Handles.DrawAAConvexPolygon(start - u, start + r, end + r, end - u);
     }
 
+    /// <summary>
+    /// Draws a four-sided pyramid arrowhead.
+    /// </summary>
+    /// <param name="tip">The world-space arrow tip.</param>
+    /// <param name="baseCenter">The world-space center of the arrowhead base.</param>
+    /// <param name="right">The right vector of the arrowhead's local drawing basis.</param>
+    /// <param name="up">The up vector of the arrowhead's local drawing basis.</param>
+    /// <param name="width">The half-width of the arrowhead base.</param>
     static void DrawArrowHead(
         Vector3 tip,
         Vector3 baseCenter,
