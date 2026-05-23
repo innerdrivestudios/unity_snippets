@@ -13,8 +13,8 @@ namespace InnerDriveStudios.Util
     public static class ColliderUtility
     {
         private const string SUB_MENU = "Colliders/";
-		private const string HeightFitModePath = Settings.MENU_PATH + SUB_MENU + "Capsule Height Fit Mode";
-		private const string RadiusFitModePath = Settings.MENU_PATH + SUB_MENU + "Capsule && Sphere Radius Fit Mode";
+		private const string HeightFitModePath = Settings.IDS_UTIL_PATH + SUB_MENU + "Capsule Height Fit Mode";
+		private const string RadiusFitModePath = Settings.IDS_UTIL_PATH + SUB_MENU + "Capsule && Sphere Radius Fit Mode";
 
         private enum FitMode { Inside, Outside, Midway };
         private static FitMode heightFitMode = FitMode.Inside;
@@ -39,7 +39,7 @@ namespace InnerDriveStudios.Util
 			Menu.SetChecked(RadiusFitModePath + "/" + FitMode.Midway,  radiusFitMode == FitMode.Midway);
 		}
 
-		private const string AutoRemoveCollidersBeforeAddingPath = Settings.MENU_PATH + SUB_MENU + "Auto remove colliders before adding";
+		private const string AutoRemoveCollidersBeforeAddingPath = Settings.IDS_UTIL_PATH + SUB_MENU + "Auto remove colliders before adding";
 
 		[MenuItem(AutoRemoveCollidersBeforeAddingPath, priority = -100)]
 		private static void AutoRemoveCollidersBeforeAdding()
@@ -73,7 +73,7 @@ namespace InnerDriveStudios.Util
 			UpdateRadiusFitModeCheckboxes();
 		}
 
-		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Remove all colliders from selected objects")]
+		[MenuItem(Settings.IDS_UTIL_PATH + SUB_MENU + "Remove all colliders from selected objects")]
 		private static void RemoveAllCollidersFromSelectedObjects()
 		{
 			//Loop over all selected objects, both hierarchy and project window ...
@@ -86,7 +86,7 @@ namespace InnerDriveStudios.Util
 			}
 		}
 
-        [MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding box collider")]
+        [MenuItem(Settings.IDS_UTIL_PATH + SUB_MENU + "Add bounding box collider")]
         private static void AddBoundingBoxCollider()
         {
             if (Menu.GetChecked(AutoRemoveCollidersBeforeAddingPath)) RemoveAllCollidersFromSelectedObjects();
@@ -107,7 +107,7 @@ namespace InnerDriveStudios.Util
         }
 
 
-        [MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding sphere collider")]
+        [MenuItem(Settings.IDS_UTIL_PATH + SUB_MENU + "Add bounding sphere collider")]
         private static void AddBoundingSphereCollider()
         {
             if (Menu.GetChecked(AutoRemoveCollidersBeforeAddingPath)) RemoveAllCollidersFromSelectedObjects();
@@ -148,7 +148,7 @@ namespace InnerDriveStudios.Util
             sphereCollider.radius = radiusToUse / Mathf.Max(lossyScale.x, Mathf.Max(lossyScale.y, lossyScale.z));
         }
 
-        [MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding capsule collider")]
+        [MenuItem(Settings.IDS_UTIL_PATH + SUB_MENU + "Add bounding capsule collider")]
         private static void AddBoundingCapsuleCollider()
         {
             if (Menu.GetChecked(AutoRemoveCollidersBeforeAddingPath)) RemoveAllCollidersFromSelectedObjects();
@@ -247,10 +247,10 @@ namespace InnerDriveStudios.Util
             capsuleCollider.height = heightToUse;
         }
 
-        [MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding capsule collider", true)]
-		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding box collider", true)]
-		[MenuItem(Settings.MENU_PATH + SUB_MENU + "Add bounding sphere collider", true)]
-        [MenuItem(Settings.MENU_PATH + SUB_MENU + "Remove all colliders from selected objects", true)]
+        [MenuItem(Settings.IDS_UTIL_PATH + SUB_MENU + "Add bounding capsule collider", true)]
+		[MenuItem(Settings.IDS_UTIL_PATH + SUB_MENU + "Add bounding box collider", true)]
+		[MenuItem(Settings.IDS_UTIL_PATH + SUB_MENU + "Add bounding sphere collider", true)]
+        [MenuItem(Settings.IDS_UTIL_PATH + SUB_MENU + "Remove all colliders from selected objects", true)]
         private static bool IsGameObjectSelected()
 		{
 			return Selection.activeGameObject != null;

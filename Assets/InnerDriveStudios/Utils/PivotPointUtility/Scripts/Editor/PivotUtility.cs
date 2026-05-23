@@ -19,7 +19,7 @@ namespace InnerDriveStudios.Util
         /// 
         /// The operation preserves the visual position of all child objects by offsetting them after moving the pivot.
         /// </remarks>
-        [MenuItem(Settings.MENU_PATH + "Bottom Center Pivot")]
+        [MenuItem(Settings.IDS_UTIL_PATH + "Bottom Center Pivot")]
         private static void BottomCenterPivot()
         {
             if (Common.IsInPlayMode())

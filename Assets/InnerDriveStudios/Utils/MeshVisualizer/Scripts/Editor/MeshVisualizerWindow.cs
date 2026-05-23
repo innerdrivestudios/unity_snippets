@@ -40,7 +40,7 @@ public class MeshVisualizerWindow : EditorWindow
     /// <summary>
     /// Opens the Mesh Visualizer editor window from the configured Unity menu path.
     /// </summary>
-    [MenuItem(Settings.MENU_PATH + "Mesh Visualizer")]
+    [MenuItem(Settings.IDS_UTIL_PATH + "Mesh Visualizer")]
     public static void Open()
     {
         GetWindow<MeshVisualizerWindow>("Mesh Visualizer");

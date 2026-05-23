@@ -29,7 +29,7 @@ namespace InnerDriveStudios.Util
 
         // Method to actually open the Circlelizer window
 
-        [MenuItem(Settings.MENU_PATH + "Circlelizer")]
+        [MenuItem(Settings.IDS_UTIL_PATH + "Circlelizer")]
         private static void Init()
         {
             Circlelizer window = GetWindow<Circlelizer>("Circlelizer");

@@ -10,7 +10,7 @@ namespace InnerDriveStudios.Util
 	 */
 	public class PrefabReplacer : EditorWindow
 	{
-		[MenuItem(Settings.MENU_PATH + "Prefab Replacer")]
+		[MenuItem(Settings.IDS_UTIL_PATH + "Prefab Replacer")]
 		private static void Init()
 		{
 			PrefabReplacer window = GetWindow<PrefabReplacer>("Prefab Replacer");

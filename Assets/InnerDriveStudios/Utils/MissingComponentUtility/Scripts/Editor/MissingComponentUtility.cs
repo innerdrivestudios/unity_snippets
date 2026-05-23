@@ -29,7 +29,7 @@ namespace InnerDriveStudios.Util
         /// Recursively scans the active scene root objects, or the current prefab stage root,
         /// and selects every GameObject that has one or more missing MonoBehaviour references.
         /// </summary>
-        [MenuItem(Settings.MENU_PATH + SUB_MENU + "Select all game objects with missing components", priority = 0)]
+        [MenuItem(Settings.IDS_UTIL_PATH + SUB_MENU + "Select all game objects with missing components", priority = 0)]
         private static void SelectAllGameObjectsWithMissingComponents()
         {
             GameObject[] rootObjects = GetRootObjectsToScan();
@@ -70,7 +70,7 @@ namespace InnerDriveStudios.Util
         /// Searches all prefab assets in the project and selects the prefabs that contain
         /// one or more missing component references anywhere in their hierarchy.
         /// </summary>
-        [MenuItem(Settings.MENU_PATH + SUB_MENU + "Select all prefab assets with missing components", priority = 1)]
+        [MenuItem(Settings.IDS_UTIL_PATH + SUB_MENU + "Select all prefab assets with missing components", priority = 1)]
         private static void SelectAllPrefabAssetsWithMissingComponents()
         {
             string[] prefabGuids = AssetDatabase.FindAssets("t:Prefab");
@@ -100,7 +100,7 @@ namespace InnerDriveStudios.Util
         /// It assumes the selection already contains the exact GameObjects to clean,
         /// which is how the recursive selection command works.
         /// </summary>
-        [MenuItem(Settings.MENU_PATH + SUB_MENU + "Remove missing components from all selected objects", priority = 2)]
+        [MenuItem(Settings.IDS_UTIL_PATH + SUB_MENU + "Remove missing components from all selected objects", priority = 2)]
         private static void RemoveMissingComponentsFromAllSelectedObjects()
         {
             GameObject[] selectedObjects = Selection.gameObjects;

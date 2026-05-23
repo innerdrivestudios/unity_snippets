@@ -37,7 +37,7 @@ namespace InnerDriveStudios.Util
         /// </summary>
         /// <remarks>
         /// This menu command is registered under the custom editor menu path defined by
-        /// <c>Settings.MENU_PATH</c>. The shortcut suffix <c>%&amp;s</c> maps to
+        /// <c>Settings.IDS_UTIL_PATH</c>. The shortcut suffix <c>%&amp;s</c> maps to
         /// Ctrl+Alt+S on Windows/Linux and Cmd+Option+S on macOS.
         ///
         /// The capture includes the rendered Game View exactly as Unity outputs it,
@@ -46,7 +46,7 @@ namespace InnerDriveStudios.Util
         /// immediately on the same frame this method is called.
         /// (It actually might take up to several seconds before the screenshot appears).
         /// </remarks>
-        [MenuItem(Settings.MENU_PATH + "Screenshot/Capture Game View %&s")]
+        [MenuItem(Settings.IDS_UTIL_PATH + "Screenshot/Capture Game View %&s")]
         public static void CaptureGameView()
         {
             // Application.dataPath points at the project's Assets folder. Its parent is
@@ -76,7 +76,7 @@ namespace InnerDriveStudios.Util
         /// </summary>
         /// <remarks>
         /// This menu command is registered under the custom editor menu path defined by
-        /// <c>Settings.MENU_PATH</c>. The shortcut suffix <c>%#&amp;s</c> maps to
+        /// <c>Settings.IDS_UTIL_PATH</c>. The shortcut suffix <c>%#&amp;s</c> maps to
         /// Ctrl+Shift+Alt+S on Windows/Linux and Cmd+Shift+Option+S on macOS.
         ///
         /// Unlike <see cref="CaptureGameView"/>, this method does not capture the Scene View
@@ -85,7 +85,7 @@ namespace InnerDriveStudios.Util
         /// intentionally excludes editor-only visual elements such as transform handles,
         /// toolbars, selection outlines, and gizmo overlays.
         /// </remarks>
-        [MenuItem(Settings.MENU_PATH + "Screenshot/Capture Scene View (Clean) %#&s")]
+        [MenuItem(Settings.IDS_UTIL_PATH + "Screenshot/Capture Scene View (Clean) %#&s")]
         public static void CaptureSceneViewClean()
         {
             var sceneView = SceneView.lastActiveSceneView;
