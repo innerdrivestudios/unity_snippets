@@ -15,6 +15,7 @@ Repository with some handy unity snippets and tools, use at your own risk :).
 	- Notes - add documentation notes directly to your game objects
 	- PivotPointUtility - like 'Center on Children' but then on the bottom center ;)
 	- PrefabReplacer - replaces any object in your scene with a prefab selected from a set
+	- ScreenshotUtility - capture screenshots in either the game view or the scene view at the resolution of the game view
 	- StagedScreenshotUtility - stage your prefabs and turn them into transparent 2D sprites automatically
 
 ## To be added soon:
