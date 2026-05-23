@@ -17,7 +17,9 @@ Repository with some handy unity snippets and tools, use at your own risk :).
 	- PrefabReplacer - replaces any object in your scene with a prefab selected from a set
 	- ScreenshotUtility - capture screenshots in either the game view or the scene view at the resolution of the game view
 	- StagedScreenshotUtility - stage your prefabs and turn them into transparent 2D sprites automatically
-
-## To be added soon:
-1. ClassLevelTooltips - allows you to add a classlevel tooltip which shows up when you hover over the component name in the inspector
-2. ExtensionClasses - useful additional methods for common classes (collections, materials, (rect) transform)
+4. Misc (not mine):
+	- AssetGUIDRegenerator - Tool that assigns new guid to your files and folders to make them "unique"
+	- BlenderCameraControlsForUnity
+	- uGUITools - Anchors to corners, vice versa etc
+	- UVViewer
+	- PlayerPrefsEditor
