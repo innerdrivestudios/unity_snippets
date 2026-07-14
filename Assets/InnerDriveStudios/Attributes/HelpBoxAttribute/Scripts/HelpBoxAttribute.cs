@@ -1,15 +1,18 @@
 using UnityEngine;
 
-public enum HelpBoxMessageType { None, Info, Warning, Error }
-
-public class HelpBoxAttribute : PropertyAttribute
+namespace InnerDriveStudios.Util
 {
-    public string text;
-    public HelpBoxMessageType messageType;
+    public enum HelpBoxMessageType { None, Info, Warning, Error }
 
-    public HelpBoxAttribute(string text, HelpBoxMessageType messageType = HelpBoxMessageType.None)
+    public class HelpBoxAttribute : PropertyAttribute
     {
-        this.text = text;
-        this.messageType = messageType;
+        public string text;
+        public HelpBoxMessageType messageType;
+
+        public HelpBoxAttribute(string text, HelpBoxMessageType messageType = HelpBoxMessageType.None)
+        {
+            this.text = text;
+            this.messageType = messageType;
+        }
     }
 }
