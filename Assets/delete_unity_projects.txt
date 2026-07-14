@@ -1,0 +1,209 @@
+@echo off
+setlocal ENABLEEXTENSIONS
+
+rem ================================================================
+rem Delete Unity project roots (folders that contain an immediate "Assets" folder)
+rem - For each directory that directly contains an "Assets" subfolder:
+rem     * permanently delete that folder using rmdir /s /q
+rem     * do NOT recurse further into that project's subtree
+rem - Other directories are traversed to keep searching.
+rem
+rem IMPORTANT:
+rem   Actual deletion requires /yes.
+rem   Without /yes, the script runs in preview mode and deletes nothing.
+rem   rmdir /s /q bypasses the Recycle Bin.
+rem
+rem USAGE:
+rem   delete-unity-projects.bat /root "D:\Projects" /yes
+rem   delete-unity-projects.bat /root "D:\Projects" /dryrun
+rem   delete-unity-projects.bat /yes
+rem
+rem Options:
+rem   /root    Start scanning from the provided folder instead of the current folder.
+rem   /yes     Permanently delete every detected Unity project root.
+rem   /dryrun  Preview what would be deleted. This is the default when /yes is omitted.
+rem ================================================================
+
+set "ROOT=%cd%"
+set "DELETE="
+set "COUNT=0"
+set "DELETED=0"
+set "FAILED=0"
+set "SKIPPED=0"
+
+:ParseOptions
+if "%~1"=="" goto :OptionsDone
+
+if /I "%~1"=="/root" (
+  shift /1
+  if "%~1"=="" (
+    echo [ERROR] /root requires a folder path.
+    exit /b 1
+  )
+  set "ROOT=%~1"
+  shift /1
+  goto :ParseOptions
+)
+
+if /I "%~1"=="/yes" (
+  set "DELETE=1"
+  shift /1
+  goto :ParseOptions
+)
+
+if /I "%~1"=="/dryrun" (
+  set "DELETE="
+  shift /1
+  goto :ParseOptions
+)
+
+if /I "%~1"=="/help" goto :Usage
+if /I "%~1"=="/h" goto :Usage
+if /I "%~1"=="/?" goto :Usage
+
+echo [ERROR] Unknown option: %~1
+echo.
+goto :Usage
+
+:OptionsDone
+if not exist "%ROOT%\" (
+  echo [ERROR] Root folder does not exist: "%ROOT%"
+  exit /b 1
+)
+
+rem Convert ROOT to a full path.
+for %%I in ("%ROOT%") do set "ROOT=%%~fI"
+
+echo.
+echo ================================================================
+echo   Scanning from: "%ROOT%"
+echo   Finds folders that contain an immediate "Assets" subfolder.
+echo ================================================================
+
+if defined DELETE (
+  echo [DELETE MODE] Matching Unity project folders will be permanently deleted.
+  echo [WARNING] This bypasses the Recycle Bin.
+) else (
+  echo [DRY RUN] Nothing will be deleted. Add /yes to permanently delete matches.
+)
+
+rem Move the script's current working directory outside ROOT where possible.
+rem This helps if ROOT itself is a Unity project folder that needs to be deleted.
+for %%I in ("%ROOT%\..") do set "ROOT_PARENT=%%~fI"
+pushd "%ROOT_PARENT%" >nul 2>nul
+if errorlevel 1 pushd "%TEMP%" >nul 2>nul
+
+call :ProcessDir "%ROOT%"
+
+popd >nul 2>nul
+
+echo.
+echo [DONE] Found %COUNT% Unity project(s).
+if defined DELETE (
+  echo [DONE] Deleted: %DELETED%
+  echo [DONE] Failed:  %FAILED%
+  echo [DONE] Skipped: %SKIPPED%
+) else (
+  echo [DONE] Preview only. Deleted: 0
+)
+
+if not "%FAILED%"=="0" exit /b 2
+exit /b 0
+
+
+:Usage
+echo.
+echo USAGE:
+echo   %~nx0 [/root "D:\Projects"] [/dryrun]
+echo   %~nx0 [/root "D:\Projects"] /yes
+echo.
+echo Examples:
+echo   %~nx0 /root "D:\Unity Projects" /dryrun
+echo   %~nx0 /root "D:\Unity Projects" /yes
+echo   %~nx0 /yes
+echo.
+echo Notes:
+echo   /dryrun is the default when /yes is omitted.
+echo   /yes permanently deletes folders using rmdir /s /q.
+echo   Deleted folders do not go to the Recycle Bin.
+exit /b 1
+
+
+:ProcessDir
+rem %~1 = current directory to inspect
+set "CUR=%~1"
+if not exist "%CUR%\" goto :eof
+
+rem Is this a Unity project root?
+rem Same detection rule as before: it has an immediate "Assets" subfolder.
+if exist "%CUR%\Assets\" (
+  set /a COUNT+=1
+  echo.
+  echo --- Unity project root: "%CUR%" has Assets ---
+  call :DeleteProject "%CUR%"
+
+  rem Do NOT recurse further into this subtree.
+  goto :eof
+)
+
+rem Otherwise, recurse into subdirectories to keep searching.
+for /D %%S in ("%CUR%\*") do (
+  if exist "%%~fS\" call :ProcessDir "%%~fS"
+)
+goto :eof
+
+
+:DeleteProject
+rem %~1 = Unity project root
+set "PROJECT=%~1"
+if not exist "%PROJECT%\" goto :eof
+
+call :IsDangerousDeleteTarget "%PROJECT%"
+if errorlevel 1 (
+  echo [SKIP] Refusing to delete dangerous target: "%PROJECT%"
+  set /a SKIPPED+=1
+  goto :eof
+)
+
+if not defined DELETE (
+  echo [DRY RUN] Would permanently delete: "%PROJECT%"
+  goto :eof
+)
+
+echo Deleting permanently: "%PROJECT%"
+
+rem Remove attributes that can otherwise block deletion in some folders.
+attrib -r -s -h "%PROJECT%" /s /d >nul 2>nul
+
+rem rmdir /s /q permanently deletes the directory tree and bypasses the Recycle Bin.
+rmdir /s /q "%PROJECT%"
+
+if exist "%PROJECT%\" (
+  echo [ERROR] Failed to delete: "%PROJECT%"
+  echo         The project may contain locked files, require elevated permissions, or be open in Unity/another app.
+  set /a FAILED+=1
+) else (
+  echo [OK] Deleted: "%PROJECT%"
+  set /a DELETED+=1
+)
+
+goto :eof
+
+
+:IsDangerousDeleteTarget
+rem Returns errorlevel 1 for targets that should never be deleted by this script.
+set "TARGET=%~f1"
+
+rem Refuse drive roots, e.g. C:\ or D:\
+for %%D in ("%TARGET%") do (
+  if /I "%%~fD"=="%%~dD\" exit /b 1
+)
+
+rem Refuse common Windows/system roots.
+if /I "%TARGET%"=="%SystemDrive%\" exit /b 1
+if defined SystemRoot if /I "%TARGET%"=="%SystemRoot%" exit /b 1
+if defined ProgramFiles if /I "%TARGET%"=="%ProgramFiles%" exit /b 1
+if not "%ProgramFiles(x86)%"=="" if /I "%TARGET%"=="%ProgramFiles(x86)%" exit /b 1
+if defined USERPROFILE if /I "%TARGET%"=="%USERPROFILE%" exit /b 1
+
+exit /b 0
